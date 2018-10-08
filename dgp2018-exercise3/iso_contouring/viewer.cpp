@@ -34,10 +34,10 @@ Scalar Viewer::iso_value(Point v_pos) {
     y = v_pos.y;
 
     // ----- (un)comment a line to change the function you are testing
-    //Scalar iso = sqrt(x*x + y*y) - 1;
-//    Scalar iso = sin(2*x+2*y) - cos(4*x*y) +1;
-    Scalar iso = y * y - sin(x * x);
-    //Scalar iso = pow(3*x*x - y*y, 2)*y*y - pow(x*x + y*y, 4);
+//    Scalar iso = sqrt(x*x + y*y) - 1;
+    Scalar iso = sin(2*x+2*y) - cos(4*x*y) +1;
+//    Scalar iso = y * y - sin(x * x);
+//    Scalar iso = pow(3*x*x - y*y, 2)*y*y - pow(x*x + y*y, 4);
 
     return iso;
 }
@@ -76,33 +76,34 @@ void Viewer::calc_iso_contouring() {
 
     // ----- add your code here -----
     vector<pair<int, int>> raw_points;
+
     for (const auto &triangle : triangle_ids) {
-        vector<Scalar> isos;
+        vector<bool> isos;
         std::transform(triangle.begin(), triangle.end(), std::back_inserter(isos),
                        [this, &v_positions](int vertex_id) -> Scalar {
-                           return this->iso_value(v_positions[vertex_id]);
+                           return this->iso_value(v_positions[vertex_id]) >= 0;
                        });
 
-        int cases = 0b1 * (isos[0] >= 0)
-                    + 0b10 * (isos[1] >= 0)
-                    + 0b100 * (isos[2] >= 0);
+        int cases = 0b1 * isos[0]
+                    + 0b10 * isos[1]
+                    + 0b100 * isos[2];
 
         switch (cases) {
-            case 0:
+            case 0b000:
             case 0b111:
                 continue;
-            case 0b1:
+            case 0b001:
             case 0b110:
                 raw_points.emplace_back(triangle[0], triangle[1]);
                 raw_points.emplace_back(triangle[0], triangle[2]);
                 break;
-            case 0b10:
+            case 0b010:
             case 0b101:
                 raw_points.emplace_back(triangle[0], triangle[1]);
                 raw_points.emplace_back(triangle[1], triangle[2]);
                 break;
             case 0b100:
-            case 0b11:
+            case 0b011:
                 raw_points.emplace_back(triangle[1], triangle[2]);
                 raw_points.emplace_back(triangle[0], triangle[2]);
                 break;
@@ -112,13 +113,12 @@ void Viewer::calc_iso_contouring() {
 
     }
 
-    for (const auto &point : raw_points) {
-        Point p1 = v_positions[point.first];
-        Point p2 = v_positions[point.second];
-        Scalar iso1 = abs(this->iso_value(p1));
-        Scalar iso2 = abs(this->iso_value(p2));
-        segment_points.push_back(p1 + (p2 - p1)*iso1/(iso1+iso2));
-    }
-
-    // ------------------------------
+    std::transform(raw_points.begin(), raw_points.end(), std::back_inserter(segment_points),
+            [&](pair<int, int> &point) {
+                Point p1 = v_positions[point.first];
+                Point p2 = v_positions[point.second];
+                Scalar iso1 = abs(this->iso_value(p1));
+                Scalar iso2 = abs(this->iso_value(p2));
+                return (p1 + (p2 - p1)*iso1/(iso1+iso2));
+    });
 }
