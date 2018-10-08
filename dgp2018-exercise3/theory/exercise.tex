@@ -22,7 +22,7 @@
 
 \title{Digital 3D Geometry Processing}
 \subtitle{Exercise 3}
-\author{\textsc{Niklas Schmitz} \and \textsc{Jannik Reichert} \and \textsc{Arne Sachtler}}
+\author{\textsc{Jannik Reichert} \and \textsc{Arne Sachtler} \and \textsc{Niklas Schmitz}}
 \date{\today}
 
 \begin{document}
@@ -30,8 +30,9 @@
 
 \section{Signed Distance Function for a Line}
 The line $x = y$ is given and the signed distance function is sought.
-We consider the line as being a degenerated circle with infinite radius, that is, the line has an inside and an outside.
-Then we get the following signed distance function
+We consider anything above the line, i.e. $x < y$ as \emph{outside},
+while $x > y$ as \emph{inside}. Starting from $y - x$ and using the Pythagorean theorem
+to get the scaling of the perpendicular right, we arrive by the following signed distance function:
 \begin{equation}
 	\Phi (x,y) = \sqrt{\frac{1}{2}} (y - x) \, .
 \end{equation}
