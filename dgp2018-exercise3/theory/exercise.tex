@@ -28,7 +28,9 @@
 \begin{document}
 \maketitle
 
-\section{Signed Distance Function for a Line}
+\section{Theory Exercise}
+
+\subsection{Signed Distance Function for a Line}
 The line $x = y$ is given and the signed distance function is sought.
 We consider anything above the line, i.e. $x < y$ as \emph{outside},
 while $x > y$ as \emph{inside}. Starting from $y - x$ and using the Pythagorean theorem
@@ -37,7 +39,7 @@ to get the scaling of the perpendicular right, we arrive by the following signed
 	\Phi (x,y) = \sqrt{\frac{1}{2}} (y - x) \, .
 \end{equation}
 
-\section{Curve with Sharp Corner}
+\subsection{Curve with Sharp Corner}
 
 Consider the following curve
 \begin{equation}
@@ -52,9 +54,51 @@ This parametric curve has the shape shown in Figure~\ref{fig:disc}. The disconti
 \end{figure}
 
 
+\newpage
 
-\section{Does the Chord Length Always Converge?}
+\subsection{Does the Chord Length Always Converge?}
 
-\section{A Sequence of 2D Curves}
+Denote $\{(x(\frac{k}{N}), y(\frac{k}{N}))|k=0,...,N\}$ as a uniform sampling of a 2D curve
+$c(t) = (x(t), y(t)), t \in \big[0,1\big]$. As the number of sampling N increases, does chord length monotonically
+increase (non-decrease) ? No. \\
+counterexample:
+
+\begin{equation}
+c(t):=(2t-1, |2t-1|),\, t	\in \big[0,1\big]
+\end{equation}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[height=5cm]{figures/plot_abs_function.png}
+	\caption{Image of $c(t)$}
+	\label{fig:abs}
+\end{figure}
+
+Consider the sampling cases $N=3$ (which perfectly fits the curve) and $N=4$:
+
+\begin{figure}[h]
+\centering
+\begin{minipage}{.5\textwidth}
+	\centering
+	\includegraphics[height=5cm]{figures/plot_abs_function_n3.png}
+	\caption{uniformly sampled chords with $N=3$}
+	\label{fig:abs_n3}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+	\centering
+	\includegraphics[height=5cm]{figures/plot_abs_function_n4.png}
+	\caption{uniformly sampled chords with $N=3$}
+	\label{fig:abs_n4}
+\end{minipage}
+\end{figure}
+
+$N=3$: the chord length is $2\sqrt{2}$
+
+$N=4$: the chord length is $1 + \sqrt{2}$
+
+So we increased N, but the chord length decreased. the counterexample is now complete.
+
+
+\subsection{A Sequence of 2D Curves}
 	
 \end{document}
