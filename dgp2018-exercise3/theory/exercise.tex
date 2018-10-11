@@ -49,7 +49,7 @@ This parametric curve has the shape shown in Figure~\ref{fig:disc}. The disconti
 \begin{figure}[h]
 	\centering
 	\includegraphics[height=5cm]{figures/discontinuous_curve.pdf}
-	\caption{Discontinous curve where the components are governed by continuous polynomials.}
+	\caption{Discontinuous curve where the components are governed by continuous polynomials.}
 	\label{fig:disc}
 \end{figure}
 
@@ -61,7 +61,7 @@ This parametric curve has the shape shown in Figure~\ref{fig:disc}. The disconti
 Denote $\{(x(\frac{k}{N}), y(\frac{k}{N}))|k=0,...,N\}$ as a uniform sampling of a 2D curve
 $c(t) = (x(t), y(t)), t \in \big[0,1\big]$. As the number of sampling N increases, does chord length monotonically
 increase (non-decrease) ? No. \\
-counterexample:
+Counterexample: consider the equation below, which is shown in Figure~\ref{fig:abs}
 
 \begin{equation}
 c(t):=(2t-1, |2t-1|),\, t	\in \big[0,1\big]
@@ -69,36 +69,29 @@ c(t):=(2t-1, |2t-1|),\, t	\in \big[0,1\big]
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[height=5cm]{figures/plot_abs_function.png}
+	\includegraphics[height=5cm]{figures/plot_abs_function.pdf}
 	\caption{Image of $c(t)$}
 	\label{fig:abs}
 \end{figure}
 
-Consider the sampling cases $N=3$ (which perfectly fits the curve) and $N=4$:
+Now we sample the curve with two different amounts of samples in Figure~\ref{fig:sampled_abs} and observe
+\begin{itemize}
+	\item $N=3$: the chord length is $2\sqrt{2}$
+	\item $N=4$: the chord length is $1 + \sqrt{2}$
+\end{itemize}
+So we increased N, but the chord length decreased. The counterexample is complete.
 
 \begin{figure}[h]
-\centering
-\begin{minipage}{.5\textwidth}
-	\centering
-	\includegraphics[height=5cm]{figures/plot_abs_function_n3.png}
-	\caption{uniformly sampled chords with $N=3$}
-	\label{fig:abs_n3}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
-	\centering
-	\includegraphics[height=5cm]{figures/plot_abs_function_n4.png}
-	\caption{uniformly sampled chords with $N=4$}
-	\label{fig:abs_n4}
-\end{minipage}
+	\begin{subfigure}{0.49\textwidth}
+	\includegraphics[width=\textwidth]{figures/plot_abs_function_n3.pdf}
+	\subcaption{$N=3$}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+	\includegraphics[width=\textwidth]{figures/plot_abs_function_n4.pdf}
+	\subcaption{$N=4$}
+	\end{subfigure}
+	\caption{Uniformly sampled chords for different amounts $N$.}\label{fig:sampled_abs}
 \end{figure}
-
-$N=3$: the chord length is $2\sqrt{2}$
-
-$N=4$: the chord length is $1 + \sqrt{2}$
-
-So we increased N, but the chord length decreased. the counterexample is now complete.
-
-
 \subsection{A Sequence of 2D Curves}
 	
 \end{document}
