@@ -92,6 +92,47 @@ So we increased N, but the chord length decreased. The counterexample is complet
 	\end{subfigure}
 	\caption{Uniformly sampled chords for different amounts $N$.}\label{fig:sampled_abs}
 \end{figure}
+\pagebreak
 \subsection{A Sequence of 2D Curves}
+Let $\mathbf{L}(t) = \begin{pmatrix}
+	t \\ t
+\end{pmatrix}$ and $t \in [0, 1]$.
+Further, we define $\mathbf{C}_i(t)$ as
+\begin{equation}
+	\mathbf{C}_i = \begin{pmatrix}
+		t \\ \frac{1}{i} \left\lfloor i t \right\rfloor
+	\end{pmatrix} \, .
+\end{equation}
+Figure~\ref{fig:steps} shows the step functions for different values of $i$.
+Increasing the value of $i$ lets $\mathbf{C}_i$ converge towards $x = y$ while
+the length of $\mathbf{C}_i$ stays constant w.r.t. $i$
+\begin{equation}
+	\lim\limits_{i \rightarrow \infty} \text{ length}(\mathbf{C}_i) = \lim\limits_{i \rightarrow \infty} \frac{1}{i} i = 1\, .
+\end{equation}
+
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+	\includegraphics[width=\textwidth]{figures/n2.pdf}
+	\subcaption{$i=2$}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+	\includegraphics[width=\textwidth]{figures/n5.pdf}
+	\subcaption{$i=5$}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+	\includegraphics[width=\textwidth]{figures/n10.pdf}
+	\subcaption{$i=10$}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+	\includegraphics[width=\textwidth]{figures/n1000.pdf}
+	\subcaption{$i=1000$}
+	\end{subfigure}
+	\caption{Step functions for different values of $i$.}
+	\label{fig:steps}
+\end{figure}
+
+Thus, the sequence $\mathbf{C}_i$ converges towards $\mathbf{L}$, while its length does not.
+
 	
 \end{document}
