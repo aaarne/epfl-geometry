@@ -7,7 +7,7 @@ project(${PROJECTNAME}) #< note: this wipes CMAKE_MODULE_PATH
 
 # Directory of cmake config files
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-# set(OpenGL_GL_PREFERENCE GLVND)
+set(OpenGL_GL_PREFERENCE LEGACY)
 
 #================================
 # Find required packages

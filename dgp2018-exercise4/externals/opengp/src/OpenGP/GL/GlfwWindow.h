@@ -30,6 +30,7 @@ public:
     ~GlfwWindow(){ active_windows()->erase(_window); }
     GlfwWindow(const std::string& title, int width, int height){
         {
+            glfwSetErrorCallback(glfw_error_callback);
             if( !glfwInit() )
                 mFatal() << "Failed to initialize GLFW";
             
