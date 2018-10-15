@@ -1,0 +1,7 @@
+$pdf_mode = 1;
+$bibtex_use = 2;
+$clean_ext = 'thesis-blx.bib run.xml';
+$pdf_previewer = 'start evince > /dev/null 2> /dev/null';
+$bibtex_use = 2;
+
+system('./topdf.py figures')
