@@ -26,11 +26,53 @@ struct MainWindow : public TrackballWindow {
 // Hint : try to play with epsilon
 // ============================================================================
     // time step for smoothing
-    double epsilon = 0.001;
+    double epsilon = 0.4;
+
+    double curve_length(MatMxN points_of_curve) {
+        double curve_length = 0.;
+
+        for (int i = 0; i < num_points - 1; ++i) {
+            curve_length += (points.col(i) - points.col(i+1)).norm();
+        }
+        curve_length += (points.col(num_points - 1) - points.col(0)).norm();
+
+        cout << curve_length << endl;
+
+        return curve_length;
+    }
+
+    void rescale(MatMxN &points_updated) {
+        double original_length = curve_length(points);
+        double temp_length = curve_length(points_updated);
+
+        double ratio = original_length / temp_length;
+
+        points_updated *= ratio;
+    }
 
     void laplacianSmoothing() {
         // Curve Smoothing - centroid (this function should do one iteration of smoothing)
 
+        // create new blank matrix for updated points
+        MatMxN points_updated;
+        points_updated = MatMxN::Zero(2, num_points);
+
+        // update first
+        points_updated.col(0) = (1.-epsilon) * points.col(0);
+        points_updated.col(0) += epsilon * (points.col(num_points - 1) + points.col(1)) / 2.;
+
+        // update second to second to last
+        for (int i = 1; i < num_points - 1; ++i) {
+            points_updated.col(i) = (1.-epsilon) * points.col(i);
+            points_updated.col(i) += epsilon * (points.col(i-1) + points.col(i+1)) / 2.;
+        }
+
+        // update last
+        points_updated.col(num_points - 1) = (1.-epsilon) * points.col(num_points - 1);
+        points_updated.col(num_points - 1) += epsilon * (points.col(num_points - 2) + points.col(0)) / 2.;
+
+        rescale(points_updated);
+        points = points_updated;
     }
 
     void osculatingCircle() {
