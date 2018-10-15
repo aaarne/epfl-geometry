@@ -81,7 +81,7 @@ private:
         float ma = (y(1) - x(1)) / (y(0) - x(0));
         float mb = (z(1) - z(1)) / (z(0) - y(0));
         float cx = (ma * mb * (x(1) - z(1)) + mb * (x(0) - y(0)) - ma * (y(0) + z(0))) / (2 * (mb - ma));
-        float cy = (-1 / ma) * (cx - (x(0) + z(0)) * 0.5) + (x(1) + y(1)) * 0.5;
+        float cy = (-1.0f / ma) * (cx - (x(0) + z(0)) * 0.5f) + (x(1) + y(1)) * 0.5f;
         return Vector2f(cx, cy);
     }
 
@@ -98,11 +98,12 @@ public:
             Vector2f point = points.col(i);
             Vector2f delta = computeCircleCenter(points.col(pythonMod(i - 1, points.cols())),
                                                  point,
-                                                 points.col(pythonMod(i + 1, points.cols())))
+                                                     points.col(pythonMod(i + 1, points.cols())))
                              - point;
             delta.normalize();
             newPoints.col(i) = point + epsilon * delta;
         }
+        rescale(newPoints);
         points = newPoints;
     }
 
@@ -151,14 +152,14 @@ public:
 
         render();
 
-        t = std::make_shared<std::thread>([this]() {
-            while (false) {
-                sleep(1);
-                this->osculatingCircle();
-                this->render();
-                cout << "Update" << endl;
-            }
-        });
+//        t = std::make_shared<std::thread>([this]() {
+//            while (false) {
+//                sleep(1);
+//                this->osculatingCircle();
+//                this->render();
+//                cout << "Update" << endl;
+//            }
+//        });
     }
 
     bool key_callback(int key, int scancode, int action, int mods) override {
