@@ -87,13 +87,15 @@ A handy thing for areas on surfaces is the First Fundemental Form, which turns o
 
 Now the area for (normalized) Part A can be calculated easily
 \begin{eqnarray}
+	\int_0^{\frac{\pi}{4}}\int_0^{2\pi} \sqrt{EG-F^2} \, du \, dv 
+	=
 	\int_0^{\frac{\pi}{4}}\int_0^{2\pi} sin(v) \, du \, dv
-	=
-	\int_0^{\frac{\pi}{4}}[u\,sin\,v]_0^{2\pi} \, dv
 	&=&
-	2\pi\int_0^{\frac{\pi}{4}}sin\,v\,dv \\
+	\int_0^{\frac{\pi}{4}}[u\,sin\,v]_0^{2\pi} \, dv \\
 	=
-	2\pi(-\sqrt{2}+1)
+	2\pi\int_0^{\frac{\pi}{4}}sin\,v\,dv
+	&=&
+	2\pi(-\sqrt{2}+1)\\
 	&=&
 	(2-\sqrt{2})\pi
 \end{eqnarray}
