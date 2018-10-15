@@ -27,28 +27,18 @@ struct MainWindow : public TrackballWindow {
 // Hint : try to play with epsilon
 // ============================================================================
     // time step for smoothing
-    double epsilon = 0.01;
+    double epsilon = 0.001;
 
     double curve_length(const MatMxN &points_of_curve) {
         double curve_length = 0.;
-
-        for (int i = 0; i < num_points - 1; ++i) {
-            curve_length += (points_of_curve.col(i) - points_of_curve.col(i+1)).norm();
+        for (int i = 0; i < num_points; ++i) {
+            curve_length += (points_of_curve.col(pyMod(i, num_points)) - points_of_curve.col(pyMod(i + 1, num_points))).norm();
         }
-        curve_length += (points_of_curve.col(num_points - 1) - points_of_curve.col(0)).norm();
-
-        cout << curve_length << endl;
-
         return curve_length;
     }
 
     void rescale(MatMxN &points_updated) {
-        double original_length = curve_length(points);
-        double temp_length = curve_length(points_updated);
-
-        double ratio = original_length / temp_length;
-
-        points_updated *= ratio;
+        points_updated *= curve_length(points) / curve_length(points_updated);
     }
 
     void laplacianSmoothing() {
@@ -58,19 +48,12 @@ struct MainWindow : public TrackballWindow {
         MatMxN points_updated;
         points_updated = MatMxN::Zero(2, num_points);
 
-        // update first
-        points_updated.col(0) = (1.-epsilon) * points.col(0);
-        points_updated.col(0) += epsilon * (points.col(num_points - 1) + points.col(1)) / 2.;
-
         // update second to second to last
-        for (int i = 1; i < num_points - 1; ++i) {
-            points_updated.col(i) = (1.-epsilon) * points.col(i);
-            points_updated.col(i) += epsilon * (points.col(i-1) + points.col(i+1)) / 2.;
+        for (int i = 0; i < num_points; ++i) {
+            points_updated.col(i) = (1. - epsilon) * points.col(i);
+            points_updated.col(i) +=
+                    epsilon * (points.col(pyMod(i - 1, num_points)) + points.col(pyMod(i + 1, num_points))) / 2.;
         }
-
-        // update last
-        points_updated.col(num_points - 1) = (1.-epsilon) * points.col(num_points - 1);
-        points_updated.col(num_points - 1) += epsilon * (points.col(num_points - 2) + points.col(0)) / 2.;
 
         rescale(points_updated);
         points = points_updated;
@@ -78,15 +61,29 @@ struct MainWindow : public TrackballWindow {
 
 private:
     Vector2f computeCircleCenter(const Vector2f &x, const Vector2f &y, const Vector2f &z) {
-        float ma = (y(1) - x(1)) / (y(0) - x(0));
-        float mb = (z(1) - z(1)) / (z(0) - y(0));
-        float cx = (ma * mb * (x(1) - z(1)) + mb * (x(0) - y(0)) - ma * (y(0) + z(0))) / (2 * (mb - ma));
-        float cy = (-1.0f / ma) * (cx - (x(0) + z(0)) * 0.5f) + (x(1) + y(1)) * 0.5f;
-        return Vector2f(cx, cy);
+        Matrix3f A, B, C;
+        A << x(0), x(1), 1,
+                y(0), y(1), 1,
+                z(0), z(1), 1;
+        B << x(0) * x(0) + x(1) * x(1), x(1), 1,
+                y(0) * y(0) + y(1) * y(1), y(1), 1,
+                z(0) * z(0) + z(1) * z(1), z(1), 1;
+        C << x(0) * x(0) + x(1) * x(1), x(0), 1,
+                y(0) * y(0) + y(1) * y(1), y(0), 1,
+                z(0) * z(0) + z(1) * z(1), z(0), 1;
+        Vector2f center(B.determinant() / (2 * A.determinant()),
+                        -C.determinant() / (2 * A.determinant()));
+        return center;
     }
 
+    /**
+     * In (plain) c++: -1 mod 6 = -1
+     * In python: -1 mod 6 = 5
+     *
+     * As we want the python behaviour, we added this helper function
+     */
     template<typename T, typename U>
-    T pythonMod(const T &a, const U &b) {
+    static T pyMod(const T &a, const U &b) {
         return (b + (a % b)) % b;
     }
 
@@ -96,12 +93,11 @@ public:
         MatMxN newPoints(points);
         for (int i = 0; i < points.cols(); i++) {
             Vector2f point = points.col(i);
-            Vector2f delta = computeCircleCenter(points.col(pythonMod(i - 1, points.cols())),
+            Vector2f delta = computeCircleCenter(points.col(pyMod(i - 1, points.cols())),
                                                  point,
-                                                     points.col(pythonMod(i + 1, points.cols())))
+                                                 points.col(pyMod(i + 1, points.cols())))
                              - point;
-            delta.normalize();
-            newPoints.col(i) = point + epsilon * delta;
+            newPoints.col(i) = point + epsilon * delta / delta.norm();
         }
         rescale(newPoints);
         points = newPoints;
@@ -141,8 +137,6 @@ public:
         render_segments.init_data(segments);
     }
 
-    std::shared_ptr<std::thread> t;
-
     MainWindow(int argc, char **argv) : TrackballWindow("2D Viewer", 640, 480) {
         num_points = 30;
         generateRandomizedClosedPolyline();
@@ -151,15 +145,6 @@ public:
         this->scene.add(render_segments);
 
         render();
-
-//        t = std::make_shared<std::thread>([this]() {
-//            while (false) {
-//                sleep(1);
-//                this->osculatingCircle();
-//                this->render();
-//                cout << "Update" << endl;
-//            }
-//        });
     }
 
     bool key_callback(int key, int scancode, int action, int mods) override {
