@@ -77,7 +77,7 @@ struct MainWindow : public TrackballWindow {
     }
 
 private:
-    Vector2f computeCircleCenter(Vector2f x, Vector2f y, Vector2f z) {
+    Vector2f computeCircleCenter(const Vector2f &x, const Vector2f &y, const Vector2f &z) {
         float ma = (y(1) - x(1)) / (y(0) - x(0));
         float mb = (z(1) - z(1)) / (z(0) - y(0));
         float cx = (ma * mb * (x(1) - z(1)) + mb * (x(0) - y(0)) - ma * (y(0) + z(0))) / (2 * (mb - ma));
@@ -86,7 +86,7 @@ private:
     }
 
     template<typename T, typename U>
-    T pythonMod(T a, U b) {
+    T pythonMod(const T &a, const U &b) {
         return (b + (a % b)) % b;
     }
 
