@@ -29,13 +29,13 @@ struct MainWindow : public TrackballWindow {
     // time step for smoothing
     double epsilon = 0.01;
 
-    double curve_length(MatMxN points_of_curve) {
+    double curve_length(const MatMxN &points_of_curve) {
         double curve_length = 0.;
 
         for (int i = 0; i < num_points - 1; ++i) {
-            curve_length += (points.col(i) - points.col(i+1)).norm();
+            curve_length += (points_of_curve.col(i) - points_of_curve.col(i+1)).norm();
         }
-        curve_length += (points.col(num_points - 1) - points.col(0)).norm();
+        curve_length += (points_of_curve.col(num_points - 1) - points_of_curve.col(0)).norm();
 
         cout << curve_length << endl;
 
