@@ -32,8 +32,8 @@
 \subsection{Curvature of Curves}
 
 \begin{itemize}
-	\item \textbf{1-d}: The function $k_1(s) \frac{s^2 -1}{x^2+1}$ converges to $1$ for $\lim\limits_{s \rightarrow \infty} k_1(s)$ and $\lim\limits_{s \rightarrow -\infty} k_1(s)$. Figure~d shows a shape, where the curve converges to two different circles for large and largely negative $s$. The circle has constant curvature, thatswhy figure d matches the curvature function $k_1$.
-	\item \textbf{2-a}: Figure a shows point-symmetry, therefore the curvature function must odd. The curvature is strictly positive when moving from the center right and stricly negative when moving left. Therefore, the curvature function $k_2$ matches.
+	\item \textbf{1-d}: The function $k_1(s) \frac{s^2 -1}{x^2+1}$ converges to $1$ for $\lim\limits_{s \rightarrow \infty} k_1(s)$ and $\lim\limits_{s \rightarrow -\infty} k_1(s)$. Figure~d shows a shape, where the curve converges to two different circles for large and largely negative $s$. The circle has constant curvature, that's why figure d matches the curvature function $k_1$.
+	\item \textbf{2-a}: Figure a shows point-symmetry, therefore the curvature function must odd. The curvature is strictly positive when moving from the center right and strictly negative when moving left. Therefore, the curvature function $k_2$ matches.
 	\item \textbf{3-c}: Figure c is also point-symmetric and $k_3$ is the remaining odd function.
 	\item \textbf{4-b}: The periodicity of the sine can not hide.
 \end{itemize}
@@ -64,8 +64,8 @@ We parametrize similar to the mapping in lecture 4
 	,\quad
 	\left(u,v\right)\in \left[0,2\pi\right)\times \left[0,\frac{\pi}{2}\right) \, .
 \end{equation}
-Note that we changed the range of the $v$ parameter as the desired shape is a hemi-shere.
-A handy tool for areas on surfaces is the first fundemental form, which turns out to be
+Note that we changed the range of the $v$ parameter as the desired shape is a hemi-sphere.
+A handy tool for areas on surfaces is the first fundamental form, which turns out to be
 \begin{equation}
 	\mathbf{I} =
 	\begin{pmatrix}
@@ -83,23 +83,17 @@ A handy tool for areas on surfaces is the first fundemental form, which turns ou
 		0 & 1
 	\end{pmatrix}\, .
 \end{equation}
-Now the area for (normalized) part A can be calculated easily
+Now the area for (normalized) part A can be calculated easily using
 \begin{eqnarray}
 	\int_0^{\frac{\pi}{4}}\int_0^{2\pi} \sqrt{EG-F^2} \, du \, dv
-	=
-	\int_0^{\frac{\pi}{4}}\int_0^{2\pi} sin(v) \, du \, dv
-	&=&
-	\int_0^{\frac{\pi}{4}}[u\,sin\,v]_0^{2\pi} \, dv \\\nonumber
-	=
-	2\pi\int_0^{\frac{\pi}{4}}sin\,v\,dv
-	&=&
-	2\pi(-\sqrt{2}+1)\\\nonumber
-	&=&
-	(2-\sqrt{2})\pi
+	=\int_0^{\frac{\pi}{4}}\int_0^{2\pi} sin(v) \, du \, dv
+	&=&\int_0^{\frac{\pi}{4}}[u\,sin\,v]_0^{2\pi} \, dv \\\nonumber
+	=2\pi\int_0^{\frac{\pi}{4}}sin\,v\,dv
+	&=&2\pi(-\sqrt{2}+1)\\\nonumber
+	&=&(2-\sqrt{2})\pi\, .
 \end{eqnarray}
 As a half circle has the total area $2\pi$, part B must have area
 $\sqrt{2}\pi=2\pi-((2-\sqrt{2})\pi)$, which makes it larger than part A.
 Therefore, part A is preferable.
 
-	
 \end{document}
