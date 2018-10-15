@@ -4,6 +4,7 @@
 #include <OpenGP/GL/PointsRenderer.h>
 #include <OpenGP/GL/SegmentsRenderer.h>
 #include <random>
+#include <thread>
 
 using namespace OpenGP;
 using namespace std;
@@ -26,7 +27,7 @@ struct MainWindow : public TrackballWindow {
 // Hint : try to play with epsilon
 // ============================================================================
     // time step for smoothing
-    double epsilon = 0.4;
+    double epsilon = 0.01;
 
     double curve_length(MatMxN points_of_curve) {
         double curve_length = 0.;
@@ -75,8 +76,34 @@ struct MainWindow : public TrackballWindow {
         points = points_updated;
     }
 
+private:
+    Vector2f computeCircleCenter(Vector2f x, Vector2f y, Vector2f z) {
+        float ma = (y(1) - x(1)) / (y(0) - x(0));
+        float mb = (z(1) - z(1)) / (z(0) - y(0));
+        float cx = (ma * mb * (x(1) - z(1)) + mb * (x(0) - y(0)) - ma * (y(0) + z(0))) / (2 * (mb - ma));
+        float cy = (-1 / ma) * (cx - (x(0) + z(0)) * 0.5) + (x(1) + y(1)) * 0.5;
+        return Vector2f(cx, cy);
+    }
+
+    template<typename T, typename U>
+    T pythonMod(T a, U b) {
+        return (b + (a % b)) % b;
+    }
+
+public:
     void osculatingCircle() {
         // Curve Smoothing - osculating circle (again, this function should do one iteration of smoothing)
+        MatMxN newPoints(points);
+        for (int i = 0; i < points.cols(); i++) {
+            Vector2f point = points.col(i);
+            Vector2f delta = computeCircleCenter(points.col(pythonMod(i - 1, points.cols())),
+                                                 point,
+                                                 points.col(pythonMod(i + 1, points.cols())))
+                             - point;
+            delta.normalize();
+            newPoints.col(i) = point + epsilon * delta;
+        }
+        points = newPoints;
     }
 
 // ============================================================================
@@ -113,6 +140,8 @@ struct MainWindow : public TrackballWindow {
         render_segments.init_data(segments);
     }
 
+    std::shared_ptr<std::thread> t;
+
     MainWindow(int argc, char **argv) : TrackballWindow("2D Viewer", 640, 480) {
         num_points = 30;
         generateRandomizedClosedPolyline();
@@ -121,6 +150,15 @@ struct MainWindow : public TrackballWindow {
         this->scene.add(render_segments);
 
         render();
+
+        t = std::make_shared<std::thread>([this]() {
+            while (false) {
+                sleep(1);
+                this->osculatingCircle();
+                this->render();
+                cout << "Update" << endl;
+            }
+        });
     }
 
     bool key_callback(int key, int scancode, int action, int mods) override {

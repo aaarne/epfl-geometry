@@ -5,4 +5,5 @@ file(GLOB_RECURSE HEADERS "*.h")
 file(GLOB_RECURSE SHADERS "*.glsl")
 
 add_executable (smoothing curves.cpp)
-target_link_libraries(smoothing ${LIBRARIES})
+target_link_libraries(smoothing ${LIBRARIES}
+        pthread)
