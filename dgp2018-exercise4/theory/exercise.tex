@@ -51,8 +51,9 @@
 
 Preferable is the part, on which we have to use less gold to cover it.
 We therefore calculate the surfaces of Parts A and B.
+As we at first only care about which area is smaller, we can calculate it on the 
+unit (half-)sphere.
 
-As we at first only care about which area is smaller, we can calculate it on the unit sphere.
 We parametrize it as in lecture 4:
 \begin{equation}
 	\mathbf{x}(u,v) = 
@@ -63,10 +64,9 @@ We parametrize it as in lecture 4:
 	\end{pmatrix}
 	,\quad
 	(u,v)\in[0,2\pi)\times [0,\frac{\pi}{2})
-
 \end{equation}
 
-A handy thing for areas on surfaces is the First Fundemental Form
+A handy thing for areas on surfaces is the First Fundemental Form, which turns out to be
 \begin{equation}
 	\mathbf{I} =
 	\begin{pmatrix}
@@ -78,11 +78,28 @@ A handy thing for areas on surfaces is the First Fundemental Form
 		{\mathbf{x}_{,u}}^\top{\mathbf{x}_{,u}} & {\mathbf{x}_{,u}}^\top{\mathbf{x}_{,v}}\\
 		{\mathbf{x}_{,u}}^\top{\mathbf{x}_{,v}} & {\mathbf{x}_{,v}}^\top{\mathbf{x}_{,v}}
 	\end{pmatrix}
+	=
+	\begin{pmatrix}
+		sin^2\,v & 0\\
+		0 & 1
+	\end{pmatrix}
 \end{equation}
 
-\begin{equation}
+Now the area for (normalized) Part A can be calculated easily
+\begin{eqnarray}
 	\int_0^{\frac{\pi}{4}}\int_0^{2\pi} sin(v) \, du \, dv
-\end{equation}
+	=
+	\int_0^{\frac{\pi}{4}}[u\,sin\,v]_0^{2\pi} \, dv
+	&=&
+	2\pi\int_0^{\frac{\pi}{4}}sin\,v\,dv \\
+	=
+	2\pi(-\sqrt{2}+1)
+	&=&
+	(2-\sqrt{2})\pi
+\end{eqnarray}
+As a half circle has the total area $2\pi$, Part B must have area 
+$\sqrt{2}\pi=2\pi-((2-\sqrt{2})\pi)$, which makes it larger than Part A.
+Therefore Part A is preferable.
 
 	
 \end{document}
