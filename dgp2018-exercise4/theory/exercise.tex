@@ -83,17 +83,43 @@ A handy tool for areas on surfaces is the first fundamental form, which turns ou
 		0 & 1
 	\end{pmatrix}\, .
 \end{equation}
-Now the area for (normalized) part A can be calculated easily using
+We first observe that the choice of the part is independent of the radius. The area for part B on a unit hemi-sphere can be calculated using
 \begin{eqnarray}
 	\int_0^{\frac{\pi}{4}}\int_0^{2\pi} \sqrt{EG-F^2} \, du \, dv
-	=\int_0^{\frac{\pi}{4}}\int_0^{2\pi} sin(v) \, du \, dv
+	\underset{v \ge 0}{=}\int_0^{\frac{\pi}{4}}\int_0^{2\pi} sin(v) \, du \, dv
 	&=&\int_0^{\frac{\pi}{4}}[u\,sin\,v]_0^{2\pi} \, dv \\\nonumber
 	=2\pi\int_0^{\frac{\pi}{4}}sin\,v\,dv
 	&=&2\pi(-\sqrt{2}+1)\\\nonumber
 	&=&(2-\sqrt{2})\pi\, .
 \end{eqnarray}
-As a half circle has the total area $2\pi$, part B must have area
-$\sqrt{2}\pi=2\pi-((2-\sqrt{2})\pi)$, which makes it larger than part A.
-Therefore, part A is preferable.
+As a hemi-sphere has the total area $2\pi$, part A has the area
+$\sqrt{2}\pi=2\pi-((2-\sqrt{2})\pi)$, which makes it larger than part B.
+Instead of using this approach, it is also possible to compute the area by integrating over $v \in \left[\frac{\pi}{4}, \frac{\pi}{2}\right]$.
+Part B is preferable as the surface area is smaller.
+
+\subsubsection*{How about N slices?}
+Slicing the hemi-sphere into $N$ slices in height leads to equal-length stripes in the parameter space.
+Let $a = \frac{i-1}{2N}\pi$ and $b = \frac{i}{2N}\pi$ for $i \in [1, \ldots, N]$. Then, the area of the $i$-th slice $A_i$ can computed by
+\begin{eqnarray}
+	A_i &=& \int\limits_a^b \int\limits_0^{2\pi} \sin(v) du\, dv\\
+	&=& \int\limits_a^b \sin(v) \left(\int_0^{2\pi} du\right)dv\\\nonumber
+	&=& \int\limits_a^b 2\pi \sin(v) dv\nonumber
+\end{eqnarray}
+In the limit case for $N \rightarrow \infty$ we obtain a density function
+\begin{equation}
+	f(v) = 2\pi \sin(v)\, ,
+\end{equation}
+which yields the \emph{area per height} dependent on the (normalized) height $v$. This is a density as $\int_{v_1}^{v_2} f(v)dv$ computes the surface of the hemi-sphere between the heights $v_1$ and $v_2$. Plotting this density function leads to the image shown in Figure~\ref{fig:area_density}.
+\begin{figure}[h]
+	\centering
+	\includegraphics[height=7cm]{figures/density.pdf}
+	\caption{Density function of area per parameter v.}
+	\label{fig:area_density}
+\end{figure}
+
+\noindent
+Slicing the hemi-sphere into $N$ slices leads to equidistant slicing of the $v$ axis in the parameter space.
+The surface area of one of the slices is then the integral of the area-density $f(v)$ over the slice bound in $v$. Therefore, one should always pick the bottommost slice as its area is smallest.
+
 
 \end{document}
