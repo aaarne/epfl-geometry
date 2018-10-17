@@ -37,6 +37,9 @@ struct MainWindow : public TrackballWindow {
         return curve_length;
     }
 
+    /* 
+    * Rescales the curve, s.t. it does not become smaller from step to step
+    */
     void rescale(MatMxN &points_updated) {
         points_updated *= curve_length(points) / curve_length(points_updated);
     }
@@ -60,6 +63,10 @@ struct MainWindow : public TrackballWindow {
     }
 
 private:
+    /**
+    * We use the determinant approach described here:
+    * http://www.ambrsoft.com/trigocalc/circle3d.htm
+    */
     Vector2f computeCircleCenter(const Vector2f &x, const Vector2f &y, const Vector2f &z) {
         Matrix3f A, B, C;
         A << x(0), x(1), 1,
@@ -93,9 +100,9 @@ public:
         MatMxN newPoints(points);
         for (int i = 0; i < points.cols(); i++) {
             Vector2f point = points.col(i);
-            Vector2f delta = computeCircleCenter(points.col(pyMod(i - 1, points.cols())),
-                                                 point,
-                                                 points.col(pyMod(i + 1, points.cols())))
+            Vector2f delta = computeCircleCenter(points.col(pyMod(i - 1, points.cols())), //point i-1
+                                                 point, // point i
+                                                 points.col(pyMod(i + 1, points.cols()))) // point i+1
                              - point;
             newPoints.col(i) = point + epsilon * delta / delta.norm();
         }
