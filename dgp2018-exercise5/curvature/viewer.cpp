@@ -130,6 +130,16 @@ void Viewer::computeNormalsByAreaWeights() {
     // Compute the normals for each vertex v in the mesh using the weights proportionals
     // to the areas technique (see .pdf) and store inside v_area_weights_n[v]
     // ------------- IMPLEMENT HERE ---------
+    for (const auto &v : mesh.vertices()) {
+        Vec3 normal(0, 0, 0);
+        for (const Mesh::Face &face : mesh.faces(v)) {
+            vector<Mesh::Vertex> vertices(3);
+            auto v_it = mesh.vertices(face);
+            std::copy(v_it.begin(), v_it.end(), std::back_inserter(vertices));
+            normal += mesh.compute_face_normal(face);
+        }
+        v_area_weights_n[v] = normal.normalize();
+    }
 }
 // ========================================================================
 // EXERCISE 1.3
