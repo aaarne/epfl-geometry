@@ -117,6 +117,13 @@ void Viewer::computeNormalsWithConstantWeights() {
     // Compute the normals for each vertex v in the mesh using the constant weights
     // technique (see .pdf) and store it inside v_cste_weights_n[v]
     // ------------- IMPLEMENT HERE ---------
+    for (const auto &v : mesh.vertices()) {
+        Vec3 normal(0, 0, 0);
+        for (const Mesh::Face &face : mesh.faces(v)) {
+            normal += mesh.compute_face_normal(face);
+        }
+        v_cste_weights_n[v] = normal.normalize();
+    }
 }
 // ========================================================================
 // EXERCISE 1.2
@@ -133,9 +140,11 @@ void Viewer::computeNormalsByAreaWeights() {
     for (const auto &v : mesh.vertices()) {
         Vec3 normal(0, 0, 0);
         for (const Mesh::Face &face : mesh.faces(v)) {
-            vector<Mesh::Vertex> vertices(3);
+            vector<Point> vertices(3);
             auto v_it = mesh.vertices(face);
-            std::copy(v_it.begin(), v_it.end(), std::back_inserter(vertices));
+            std::transform(v_it.begin(), v_it.end(), std::back_inserter(vertices),
+                    [this](Mesh::Vertex v) {return mesh.points()[v.idx()]; });
+
             normal += mesh.compute_face_normal(face);
         }
         v_area_weights_n[v] = normal.normalize();
