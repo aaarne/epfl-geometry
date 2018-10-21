@@ -141,11 +141,21 @@ void Viewer::computeNormalsByAreaWeights() {
         Vec3 normal(0, 0, 0);
         for (const Mesh::Face &face : mesh.faces(v)) {
             vector<Point> vertices(3);
-            auto v_it = mesh.vertices(face);
-            std::transform(v_it.begin(), v_it.end(), std::back_inserter(vertices),
-                    [this](Mesh::Vertex v) {return mesh.points()[v.idx()]; });
 
-            normal += mesh.compute_face_normal(face);
+            for (const auto &vertex : mesh.vertices(face)) {
+                vertices.push_back(mesh.points()[vertex.idx()]);
+            }
+
+            Eigen::Vector3d a((vertices[0] - vertices[1]).x,
+                              (vertices[0] - vertices[1]).y,
+                              (vertices[0] - vertices[1]).z);
+            Eigen::Vector3d b((vertices[0] - vertices[2]).x,
+                              (vertices[0] - vertices[2]).y,
+                              (vertices[0] - vertices[2]).z);
+            double A = a.cross(b).norm() / 2;
+            cout << A << endl;
+
+            normal += A * mesh.compute_face_normal(face);
         }
         v_area_weights_n[v] = normal.normalize();
     }
