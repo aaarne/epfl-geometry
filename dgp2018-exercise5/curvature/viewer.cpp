@@ -63,7 +63,7 @@ void Viewer::calc_edges_weights() {
         w += 1.0 / tan(acos(min(0.99f, max(-0.99f, dot(d0, d1)))));
 
         w = max(0.0f, w);
-        eweight[e] = w * 0.5;
+        eweight[e] = w * 0.5f;
     }
 }
 
@@ -94,7 +94,7 @@ void Viewer::calc_vertices_weights() {
 
         } while(++vf_c != vf_end);
 
-        vweight[v] = 0.5 / area;
+        vweight[v] = 0.5f / area;
     }
 }
 
@@ -119,7 +119,7 @@ void Viewer::computeNormalsWithConstantWeights() {
     // ------------- IMPLEMENT HERE ---------
     for (const auto &v : mesh.vertices()) {
         Vec3 normal(0, 0, 0);
-        for (const Mesh::Face &face : mesh.faces(v)) {
+        for (const Mesh::Face &face : mesh.faces(v)) { // this uses the circulator
             normal += mesh.compute_face_normal(face);
         }
         v_cste_weights_n[v] = normal.normalize();
@@ -140,20 +140,18 @@ void Viewer::computeNormalsByAreaWeights() {
     for (const auto &v : mesh.vertices()) {
         Vec3 normal(0, 0, 0);
         for (const Mesh::Face &face : mesh.faces(v)) {
-            vector<Point> vertices(3);
+            vector<Point> vertices;
 
             for (const auto &vertex : mesh.vertices(face)) {
                 vertices.push_back(mesh.points()[vertex.idx()]);
             }
 
-            Eigen::Vector3d a((vertices[0] - vertices[1]).x,
-                              (vertices[0] - vertices[1]).y,
-                              (vertices[0] - vertices[1]).z);
-            Eigen::Vector3d b((vertices[0] - vertices[2]).x,
-                              (vertices[0] - vertices[2]).y,
-                              (vertices[0] - vertices[2]).z);
-            double A = a.cross(b).norm() / 2;
-            cout << A << endl;
+            assert(vertices.size() == 3);
+
+            double A = .5 * norm(cross(
+                        vertices[1] - vertices[0],
+                        vertices[2] - vertices[0]
+                    ));
 
             normal += A * mesh.compute_face_normal(face);
         }
@@ -172,6 +170,24 @@ void Viewer::computeNormalsWithAngleWeights() {
     // Compute the normals for each vertex v in the mesh using the weights proportionals
     // to the angles technique (see .pdf) and store it inside v_angle_weights_n[v]
     // ------------- IMPLEMENT HERE ---------
+    for (const auto &v : mesh.vertices()) {
+        Vec3 normal(0, 0, 0);
+        for (const Mesh::Face &face : mesh.faces(v)) {
+            vector<Point> vertices;
+
+            for (const auto &vertex : mesh.vertices(face)) {
+                vertices.push_back(mesh.points()[vertex.idx()]);
+            }
+
+            Vec3 a(vertices[1] - vertices[0]);
+            Vec3 b(vertices[2] - vertices[0]);
+
+            double alpha = std::acos(dot(a, b)) / (norm(a) * norm(b));
+
+            normal += alpha * mesh.compute_face_normal(face);
+        }
+        v_angle_weights_n[v] = normal.normalize();
+    }
 }
 // ========================================================================
 // EXERCISE 2.1
@@ -189,6 +205,19 @@ void Viewer::calc_uniform_laplacian() {
     // mesh called v_uniLaplace[v].
     // Store min and max values of v_uniLaplace[v] in min_uniLaplace and max_uniLaplace.
     // ------------- IMPLEMENT HERE ---------
+    for (const auto &v : mesh.vertices()) {
+        Vec3 laplacian(0, 0, 0);
+        int N = 0;
+        for (const auto &v2 : mesh.vertices(v)) {
+            laplacian += mesh.points()[v2.idx()] - mesh.points()[v.idx()];
+            N++;
+        }
+        v_uniLaplace[v] = norm(laplacian/N);
+    }
+    max_uniLaplace = *std::max_element(v_uniLaplace.vector().begin(), v_uniLaplace.vector().end());
+    min_uniLaplace = *std::min_element(v_uniLaplace.vector().begin(), v_uniLaplace.vector().end());
+    cout << "Max Uniform Laplace: " << max_uniLaplace << endl;
+    cout << "Min Uniform Laplace: " << min_uniLaplace << endl;
 }
 // ========================================================================
 // EXERCISE 2.2
