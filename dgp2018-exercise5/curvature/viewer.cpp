@@ -216,8 +216,6 @@ void Viewer::calc_uniform_laplacian() {
     }
     max_uniLaplace = *std::max_element(v_uniLaplace.vector().begin(), v_uniLaplace.vector().end());
     min_uniLaplace = *std::min_element(v_uniLaplace.vector().begin(), v_uniLaplace.vector().end());
-    cout << "Max Uniform Laplace: " << max_uniLaplace << endl;
-    cout << "Min Uniform Laplace: " << min_uniLaplace << endl;
 }
 // ========================================================================
 // EXERCISE 2.2
@@ -294,11 +292,12 @@ void Viewer::calc_gauss_curvature() {
             d0 = mesh.position(*vv_c) - pos_v;
             d1 = mesh.position(*vv_c2) - pos_v;
 
-            angles += acos(min(0.99f, max(-0.99f, dot(d0, d1)))) / (norm(d0) * norm(d1));
+            cos_angle = min(0.99f, max(-0.99f, dot(d0, d1) / (norm(d0) * norm(d1))));
+            angles += acos(cos_angle);
 
         } while(++vv_c != vv_end);
 
-        v_gauss_curvature[v] = float(2*M_PI - angles) * v_weight[v];
+        v_gauss_curvature[v] = float(2*M_PI - angles) * 2 * v_weight[v];
     }
 
     max_gauss_curvature = *std::max_element(v_gauss_curvature.vector().begin(), v_gauss_curvature.vector().end());
