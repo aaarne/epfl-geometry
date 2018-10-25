@@ -61,7 +61,7 @@ public:
         initGUI();
         initShaders();
 
-        loadMesh("../data/bunny.off");
+        loadMesh("../data/small_sphere.obj");
         meshProcess();
     }
 

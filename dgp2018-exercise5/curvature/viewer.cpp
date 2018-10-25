@@ -275,37 +275,16 @@ void Viewer::calc_gauss_curvature() {
         vv_c = mesh.vertices(v);
         vv_c2 = mesh.vertices(v);
 
-        if (!vv_c || !vv_c2) {
-            continue;
-        }
+        Vec3 pos = mesh.position(v);
+        for (const auto &v1 : vv_c) {
+            ++vv_c2; //this is safe as the circulator iterator is implemented circularly. i.e. incrementing end -> begin
 
-        vv_end = vv_c;
+            d0 = mesh.position(v1) - pos;
+            d1 = mesh.position(*vv_c2) - pos;
 
-        do {
-            ++vv_c2;
-
-            const auto pos_v = mesh.position(v);
-
-            d0 = mesh.position(*vv_c) - pos_v;
-            d1 = mesh.position(*vv_c2) - pos_v;
-
-            cos_angle = min(.99f, max(-.99f, dot(d0, d1) / (norm(d0) * norm(d1))));
+            cos_angle = min(ub, max(lb, dot(d0, d1) / (norm(d0) * norm(d1))));
             angles += acos(cos_angle);
-
-        } while(++vv_c != vv_end);
-
-
-        // TODO select which code block we keep. The one below was mine.
-//        Vec3 pos = mesh.position(v);
-//        for (const auto &v1 : vv_c) {
-//            ++vv_c2; //this is safe as the circulator iterator is implemented circularly. i.e. incrementing end -> begin
-//
-//            d0 = mesh.position(v1) - pos;
-//            d1 = mesh.position(*vv_c2) - pos;
-//
-//            cos_angle = min(ub, max(lb, dot(d0, d1) / (norm(d0) * norm(d1))));
-//            angles += acos(cos_angle);
-//        }
+        }
 
         v_gauss_curvature[v] = float(2*M_PI - angles) * 2.0f * v_weight[v];
 
