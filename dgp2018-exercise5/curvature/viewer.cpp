@@ -182,7 +182,7 @@ void Viewer::computeNormalsWithAngleWeights() {
             Vec3 a(vertices[1] - vertices[0]);
             Vec3 b(vertices[2] - vertices[0]);
 
-            double alpha = acos(min(0.99f, max(-0.99f, dot(a, b)))) / (norm(a) * norm(b));
+            double alpha = acos(min(0.99f, max(-0.99f, dot(a, b) / (norm(a) * norm(b)))));
 
             normal += alpha * mesh.compute_face_normal(face);
         }
