@@ -273,26 +273,35 @@ void Viewer::calc_gauss_curvature() {
     // Use the v_weight property for the area weight.
     // ------------- IMPLEMENT HERE ---------
 
-    for (const auto &v : mesh.vertices()) {
-        Vec3 normal(0, 0, 0);
+    for (const auto v : mesh.vertices()) {
 
-        double sum_angles = 0.;
+        angles = 0.;
 
-        for (const Mesh::Face &face : mesh.faces(v)) {
-            vector<Point> vertices;
+        vv_c = mesh.vertices(v);
+        vv_c2 = mesh.vertices(v);
 
-            for (const auto &vertex : mesh.vertices(face)) {
-                vertices.push_back(mesh.points()[vertex.idx()]);
-            }
-
-            Vec3 a(vertices[1] - vertices[0]);
-            Vec3 b(vertices[2] - vertices[0]);
-
-            sum_angles += acos(min(0.99f, max(-0.99f, dot(a, b)))) / (norm(a) * norm(b));
+        if (!vv_c || !vv_c2) {
+            continue;
         }
-        v_gauss_curvature[v] = (2*M_PI - sum_angles) * 2 * v_weight[v];
+
+        vv_end = vv_c;
+
+        do {
+            ++vv_c2;
+
+            const auto pos_v = mesh.position(v);
+
+            d0 = mesh.position(*vv_c) - pos_v;
+            d1 = mesh.position(*vv_c2) - pos_v;
+
+            angles += acos(min(0.99f, max(-0.99f, dot(d0, d1)))) / (norm(d0) * norm(d1));
+
+        } while(++vv_c != vv_end);
+
+        v_gauss_curvature[v] = float(2*M_PI - angles) * v_weight[v];
     }
 
     max_gauss_curvature = *std::max_element(v_gauss_curvature.vector().begin(), v_gauss_curvature.vector().end());
     min_gauss_curvature = *std::min_element(v_gauss_curvature.vector().begin(), v_gauss_curvature.vector().end());
 }
+
