@@ -37,7 +37,7 @@ Scalar Viewer::iso_value(Point v_pos) {
 //    Scalar iso = sqrt(x*x + y*y) - 1;
     //Scalar iso = sin(2*x+2*y) - cos(4*x*y) +1;
     Scalar iso = y * y - sin(x * x);
-//    Scalar iso = pow(3*x*x - y*y, 2)*y*y - pow(x*x + y*y, 4);
+//    Scalar iso ./= pow(3*x*x - y*y, 2)*y*y - pow(x*x + y*y, 4);
 
     return iso;
 }

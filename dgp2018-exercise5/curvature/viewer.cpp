@@ -239,6 +239,18 @@ void Viewer::calc_mean_curvature() {
     // Save your approximation in v_curvature vertex property of the mesh.
     // Use the weights from calc_weights(): e_weight and v_weight
     // ------------- IMPLEMENT HERE ---------
+
+    for (const auto &v : mesh.vertices()) {
+        Vec3 laplace_beltrami(0, 0, 0);
+        for (const auto &v2 : mesh.vertices(v)) {
+            auto e = mesh.find_edge(v, v2);
+            laplace_beltrami += e_weight[e] * (mesh.points()[v2.idx()] - mesh.points()[v.idx()]);
+        }
+        laplace_beltrami *= v_weight[v];
+        v_curvature[v] = norm(laplace_beltrami);
+    }
+    max_mean_curvature = *std::max_element(v_curvature.vector().begin(), v_curvature.vector().end());
+    min_mean_curvature = *std::min_element(v_curvature.vector().begin(), v_curvature.vector().end());
 }
 // ========================================================================
 // EXERCISE 2.3
