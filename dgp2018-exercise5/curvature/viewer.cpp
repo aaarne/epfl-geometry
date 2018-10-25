@@ -143,7 +143,7 @@ void Viewer::computeNormalsByAreaWeights() {
             vector<Point> vertices;
 
             for (const auto &vertex : mesh.vertices(face)) {
-                vertices.push_back(mesh.points()[vertex.idx()]);
+                vertices.push_back(mesh.position(vertex));
             }
 
             assert(vertices.size() == 3);
@@ -176,7 +176,7 @@ void Viewer::computeNormalsWithAngleWeights() {
             vector<Point> vertices;
 
             for (const auto &vertex : mesh.vertices(face)) {
-                vertices.push_back(mesh.points()[vertex.idx()]);
+                vertices.push_back(mesh.position(vertex));
             }
 
             Vec3 a(vertices[1] - vertices[0]);
@@ -194,7 +194,6 @@ void Viewer::computeNormalsWithAngleWeights() {
 // ========================================================================
 void Viewer::calc_uniform_laplacian() {
     Mesh::Vertex_property<Scalar> v_uniLaplace = mesh.vertex_property<Scalar>("v:uniLaplace", 0);
-    Mesh::Vertex_around_vertex_circulator   vv_c, vv_end;
     Point             laplace(0.0);
     min_uniLaplace = 1000;
     max_uniLaplace = -1000;
@@ -206,13 +205,13 @@ void Viewer::calc_uniform_laplacian() {
     // Store min and max values of v_uniLaplace[v] in min_uniLaplace and max_uniLaplace.
     // ------------- IMPLEMENT HERE ---------
     for (const auto &v : mesh.vertices()) {
-        Vec3 laplacian(0, 0, 0);
+        laplace = 0;
         int N = 0;
         for (const auto &v2 : mesh.vertices(v)) {
-            laplacian += mesh.points()[v2.idx()] - mesh.points()[v.idx()];
+            laplace += mesh.position(v2) - mesh.position(v);
             N++;
         }
-        v_uniLaplace[v] = norm(laplacian/N);
+        v_uniLaplace[v] = norm(laplace/N);
     }
     max_uniLaplace = *std::max_element(v_uniLaplace.vector().begin(), v_uniLaplace.vector().end());
     min_uniLaplace = *std::min_element(v_uniLaplace.vector().begin(), v_uniLaplace.vector().end());
@@ -224,9 +223,6 @@ void Viewer::calc_mean_curvature() {
     Mesh::Vertex_property<Scalar>  v_curvature = mesh.vertex_property<Scalar>("v:curvature", 0);
     Mesh::Edge_property<Scalar> e_weight = mesh.edge_property<Scalar>("e:weight", 0);
     Mesh::Vertex_property<Scalar>  v_weight = mesh.vertex_property<Scalar>("v:weight", 0);
-    Mesh::Halfedge_around_vertex_circulator vh_c, vh_end;
-    Mesh::Vertex neighbor_v;
-    Mesh::Edge e;
     Point laplace(0.0);
     min_mean_curvature = 1000;
     max_mean_curvature = -1000;
@@ -239,13 +235,13 @@ void Viewer::calc_mean_curvature() {
     // ------------- IMPLEMENT HERE ---------
 
     for (const auto &v : mesh.vertices()) {
-        Vec3 laplace_beltrami(0, 0, 0);
+        laplace = 0;
         for (const auto &v2 : mesh.vertices(v)) {
-            auto e = mesh.find_edge(v, v2);
-            laplace_beltrami += e_weight[e] * (mesh.points()[v2.idx()] - mesh.points()[v.idx()]);
+            Mesh::Edge e = mesh.find_edge(v, v2);
+            laplace += e_weight[e] * (mesh.position(v2) - mesh.position(v));
         }
-        laplace_beltrami *= v_weight[v];
-        v_curvature[v] = norm(laplace_beltrami);
+        laplace *= v_weight[v];
+        v_curvature[v] = norm(laplace);
     }
     max_mean_curvature = *std::max_element(v_curvature.vector().begin(), v_curvature.vector().end());
     min_mean_curvature = *std::min_element(v_curvature.vector().begin(), v_curvature.vector().end());
@@ -271,9 +267,10 @@ void Viewer::calc_gauss_curvature() {
     // Use the v_weight property for the area weight.
     // ------------- IMPLEMENT HERE ---------
 
-    for (const auto v : mesh.vertices()) {
+    for (const auto &v : mesh.vertices()) {
+        if (mesh.is_boundary(v)) continue;
 
-        angles = 0.;
+        angles = 0.0f;
 
         vv_c = mesh.vertices(v);
         vv_c2 = mesh.vertices(v);
@@ -297,7 +294,21 @@ void Viewer::calc_gauss_curvature() {
 
         } while(++vv_c != vv_end);
 
+
+        // I think this is more readable than the circulator stuff and it does the same. What do you think?
+//        Vec3 pos = mesh.position(v);
+//        for (const auto &v1 : vv_c) {
+//            ++vv_c2; //this is safe as the circulator iterator is implemented circularly. i.e. incrementing end -> begin
+//
+//            d0 = mesh.position(v1) - pos;
+//            d1 = mesh.position(*vv_c2) - pos;
+//
+//            cos_angle = min(.99f, max(-.99f, dot(d0, d1) / (norm(d0) * norm(d1))));
+//            angles += acos(cos_angle);
+//        }
+
         v_gauss_curvature[v] = float(2*M_PI - angles) * 2 * v_weight[v];
+
     }
 
     max_gauss_curvature = *std::max_element(v_gauss_curvature.vector().begin(), v_gauss_curvature.vector().end());
