@@ -182,7 +182,7 @@ void Viewer::computeNormalsWithAngleWeights() {
             Vec3 a(vertices[1] - vertices[0]);
             Vec3 b(vertices[2] - vertices[0]);
 
-            double alpha = std::acos(dot(a, b)) / (norm(a) * norm(b));
+            double alpha = acos(min(0.99f, max(-0.99f, dot(a, b)))) / (norm(a) * norm(b));
 
             normal += alpha * mesh.compute_face_normal(face);
         }
@@ -272,4 +272,27 @@ void Viewer::calc_gauss_curvature() {
     // you pass to the acos function is between -1.0 and 1.0.
     // Use the v_weight property for the area weight.
     // ------------- IMPLEMENT HERE ---------
+
+    for (const auto &v : mesh.vertices()) {
+        Vec3 normal(0, 0, 0);
+
+        double sum_angles = 0.;
+
+        for (const Mesh::Face &face : mesh.faces(v)) {
+            vector<Point> vertices;
+
+            for (const auto &vertex : mesh.vertices(face)) {
+                vertices.push_back(mesh.points()[vertex.idx()]);
+            }
+
+            Vec3 a(vertices[1] - vertices[0]);
+            Vec3 b(vertices[2] - vertices[0]);
+
+            sum_angles += acos(min(0.99f, max(-0.99f, dot(a, b)))) / (norm(a) * norm(b));
+        }
+        v_gauss_curvature[v] = (2*M_PI - sum_angles) * 2 * v_weight[v];
+    }
+
+    max_gauss_curvature = *std::max_element(v_gauss_curvature.vector().begin(), v_gauss_curvature.vector().end());
+    min_gauss_curvature = *std::min_element(v_gauss_curvature.vector().begin(), v_gauss_curvature.vector().end());
 }
