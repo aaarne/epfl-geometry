@@ -32,9 +32,9 @@ namespace mesh_processing {
 // EXERCISE 1.1
 // ========================================================================
     void MeshProcessing::uniform_smooth(const unsigned int iterations) {
-        Point laplacian;
+        const double rate = 0.5;
 
-        Scalar rate(0.1f);
+        Point laplacian;
 
         for (unsigned int iter = 0; iter < iterations; ++iter) {
             // ------------- IMPLEMENT HERE ---------
@@ -62,9 +62,10 @@ namespace mesh_processing {
 // EXERCISE 1.2
 // ========================================================================
     void MeshProcessing::smooth(const unsigned int iterations) {
+        const double rate = 0.5;
 
         Point laplacian_weighted;
-        Scalar rate(0.1f), acc(0);
+        double acc = 0;
 
         for (unsigned int iter = 0; iter < iterations; ++iter) {
             // ------------- IMPLEMENT HERE ---------
@@ -118,8 +119,8 @@ namespace mesh_processing {
         std::vector<Eigen::Triplet<double> > triplets;
 
         // ========================================================================
-        // TODO: IMPLEMENTATION FOR EXERCISE 2 HERE -- DONE :)
-        const double lambda = 1.0;
+        // TODO: IMPLEMENTATION FOR EXERCISE 2 HERE --> DONE :)
+        const double lambda = 0.5;
 
         /* We solve: AX = B ==> (I - delta t lambda L) P(t+1) = P(t)
          * Let L = DM and left-multiply by inv(D), then
@@ -181,6 +182,18 @@ namespace mesh_processing {
         // 2) update the vertex positions according to the difference between the original and the smoothed mesh,
         //    using enhancement_coef as the value of alpha in the feature enhancement formula
         // ------------- IMPLEMENT HERE ---------
+
+        //Store current position of vertices
+        auto pos_before = mesh_.vertex_property<surface_mesh::Vec3>("v:pos_before");
+        for (const auto &v : mesh_.vertices()) pos_before[v] = mesh_.position(v);
+
+        //Perform smoothing
+        this->uniform_smooth(iterations);
+
+        //Enhance features
+        for (const auto &v : mesh_.vertices()) {
+            mesh_.position(v) += coefficient * (pos_before[v] - mesh_.position(v));
+        }
     }
 
 // ======================================================================
@@ -195,6 +208,17 @@ namespace mesh_processing {
         // 2) update the vertex positions according to the difference between the original and the smoothed mesh,
         //    using enhancement_coef as the value of alpha in the feature enhancement formula
         // ------------- IMPLEMENT HERE ---------
+        //Store current position of vertices
+        auto pos_before = mesh_.vertex_property<surface_mesh::Vec3>("v:pos_before");
+        for (const auto &v : mesh_.vertices()) pos_before[v] = mesh_.position(v);
+
+        //Perform smoothing
+        this->smooth(iterations);
+
+        //Enhance features
+        for (const auto &v : mesh_.vertices()) {
+            mesh_.position(v) += coefficient * (pos_before[v] - mesh_.position(v));
+        }
     }
 
     void MeshProcessing::calc_weights() {
