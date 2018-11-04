@@ -119,27 +119,28 @@ void MeshProcessing::implicit_smoothing(const double timestep) {
     // ========================================================================
     // TODO: IMPLEMENTATION FOR EXERCISE 2 HERE
     const double lambda = 1.0;
+
     // We solve: AX = B ==> (inv(D) - delta t lambda M) P(t+1) = inv(D) P(t)
+
     for (const auto &vi : mesh_.vertices()) {
         double edge_weight_sum = 0;
 
         // vj in N_1(vi):
         for (const auto &vj : mesh_.vertices(vi)) {
-            assert(vi != vj);
             double edge_weight = cotan[mesh_.find_edge(vi, vj)];
             edge_weight_sum += edge_weight;
 
-            double m = -timestep * lambda * edge_weight; // entry of the (inv(D) - delta t lambda M) matrix
-            triplets.emplace_back(vi.idx(), vj.idx(), m);
+            double m_ij = -timestep * lambda * edge_weight; // entry of the (inv(D) - delta t lambda M) matrix
+            triplets.emplace_back(vi.idx(), vj.idx(), m_ij);
         }
 
         // ... and the diagnonal entry:
-        double dinv = 1./area_inv[vi];
-        double m = dinv + timestep * lambda * edge_weight_sum;
-        triplets.emplace_back(vi.idx(), vi.idx(), m);
+        double di_inv = 1./area_inv[vi]; // as D is diagnonal inversion is just the inverses of the diagonal
+        double m_ii = di_inv + timestep * lambda * edge_weight_sum;
+        triplets.emplace_back(vi.idx(), vi.idx(), m_ii);
 
         // ... and set the ith row of B
-        surface_mesh::Vec3 b = mesh_.position(vi) * dinv;
+        surface_mesh::Vec3 b = mesh_.position(vi) * di_inv;
         B.row(vi.idx()) << b.x, b.y, b.z;
     }
     // ========================================================================
