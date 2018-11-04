@@ -62,6 +62,9 @@ void MeshProcessing::uniform_smooth(const unsigned int iterations) {
 // ========================================================================
 void MeshProcessing::smooth(const unsigned int iterations) {
 
+    Point laplacian_weighted;
+    Scalar rate(0.1f), acc(0);
+
     for (unsigned int iter=0; iter<iterations; ++iter) {
         // ------------- IMPLEMENT HERE ---------
         // Perform Cotan Laplacian smoothing:
@@ -72,6 +75,22 @@ void MeshProcessing::smooth(const unsigned int iterations) {
         calc_edges_weights();
         auto e_weight = mesh_.edge_property<Scalar>("e:weight", 0.0f);
 
+        for (const auto &v : mesh_.vertices()) {
+            if (mesh_.is_boundary(v)) continue; // Skip boundary vertices
+
+            // Compute uniform laplacian
+            acc = 0;
+            laplacian_weighted = 0;
+            for (const auto &v2 : mesh_.vertices(v)) {
+                float w = e_weight[mesh_.find_edge(v, v2)];
+                laplacian_weighted += w * (mesh_.position(v2) - mesh_.position(v));
+                acc += w;
+            }
+            laplacian_weighted /= acc;
+
+            // update vertex position
+            mesh_.position(v) += rate * laplacian_weighted;
+        }
     }
 }
 
