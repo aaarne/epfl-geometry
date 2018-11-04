@@ -194,6 +194,9 @@ namespace mesh_processing {
         for (const auto &v : mesh_.vertices()) {
             mesh_.position(v) += coefficient * (pos_before[v] - mesh_.position(v));
         }
+
+        //clean up
+        mesh_.remove_vertex_property(pos_before);
     }
 
 // ======================================================================
@@ -219,6 +222,9 @@ namespace mesh_processing {
         for (const auto &v : mesh_.vertices()) {
             mesh_.position(v) += coefficient * (pos_before[v] - mesh_.position(v));
         }
+
+        //clean up
+        mesh_.remove_vertex_property(pos_before);
     }
 
     void MeshProcessing::calc_weights() {
