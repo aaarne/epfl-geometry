@@ -121,8 +121,10 @@ namespace mesh_processing {
         // TODO: IMPLEMENTATION FOR EXERCISE 2 HERE -- DONE :)
         const double lambda = 1.0;
 
-        /* We solve: AX = B ==> (inv(D) - delta t lambda M) P(t+1) = inv(D) P(t)
-         * Therefore: A = inv(D) - delta t lambda M
+        /* We solve: AX = B ==> (I - delta t lambda L) P(t+1) = P(t)
+         * Let L = DM and left-multiply by inv(D), then
+         *
+         * A = inv(D) - delta t lambda M
          * and B = inv(D) * P(t)*/
 
         for (const auto &vi : mesh_.vertices()) {
