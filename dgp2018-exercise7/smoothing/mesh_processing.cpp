@@ -31,11 +31,29 @@ MeshProcessing::MeshProcessing(const string& filename) {
 // EXERCISE 1.1
 // ========================================================================
 void MeshProcessing::uniform_smooth(const unsigned int iterations) {
+    Point laplacian;
+
+    Scalar rate(0.1f);
 
     for (unsigned int iter=0; iter<iterations; ++iter) {
         // ------------- IMPLEMENT HERE ---------
         // For each non-boundary vertex, update its position according to the uniform Laplacian operator
         // ------------- IMPLEMENT HERE ---------
+        for (const auto &v : mesh_.vertices()) {
+            if (mesh_.is_boundary(v)) continue; // Skip boundary vertices
+
+            // Compute uniform laplacian
+            laplacian = 0;
+            int N = 0;
+            for (const auto &v2 : mesh_.vertices(v)) {
+                laplacian += mesh_.position(v2) - mesh_.position(v);
+                N++;
+            }
+            laplacian /= N;
+
+            // update vertex position
+            mesh_.position(v) += rate * laplacian;
+        }
     }
 }
 
@@ -51,6 +69,9 @@ void MeshProcessing::smooth(const unsigned int iterations) {
         // 2) for each non-boundary vertex, update its position using the normalized cotan Laplacian operator
         //    (Hint: use the precomputed edge weights in the edge property "e:weight")
         // ------------- IMPLEMENT HERE ---------
+        calc_edges_weights();
+        auto e_weight = mesh_.edge_property<Scalar>("e:weight", 0.0f);
+
     }
 }
 
