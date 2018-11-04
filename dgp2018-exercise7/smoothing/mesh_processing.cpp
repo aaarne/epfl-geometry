@@ -136,7 +136,17 @@ void MeshProcessing::calc_weights() {
 void MeshProcessing::calc_uniform_mean_curvature() {
     Mesh::Vertex_property<Scalar> v_unicurvature =
             mesh_.vertex_property<Scalar>("v:unicurvature", 0.0f);
+    Point laplace(0.0);
     // ------------- COPY YOUR FUNCTION FROM EXERCISE 4 ---------
+    for (const auto &v : mesh_.vertices()) {
+        laplace = 0;
+        int N = 0;
+        for (const auto &v2 : mesh_.vertices(v)) {
+            laplace += mesh_.position(v2) - mesh_.position(v);
+            N++;
+        }
+        v_unicurvature[v] = norm(laplace/N);
+    }
 }
 
 void MeshProcessing::calc_mean_curvature() {
@@ -147,6 +157,16 @@ void MeshProcessing::calc_mean_curvature() {
     Mesh::Vertex_property<Scalar>  v_weight =
             mesh_.vertex_property<Scalar>("v:weight", 0.0f);
     // ------------- COPY YOUR FUNCTION FROM EXERCISE 4 ---------
+    Point laplace(0.0);
+    for (const auto &v : mesh_.vertices()) {
+        laplace = 0;
+        for (const auto &v2 : mesh_.vertices(v)) {
+            Mesh::Edge e = mesh_.find_edge(v, v2);
+            laplace += e_weight[e] * (mesh_.position(v2) - mesh_.position(v));
+        }
+        laplace *= v_weight[v];
+        v_curvature[v] = norm(laplace);
+    }
 }
 
 void MeshProcessing::calc_gauss_curvature() {
@@ -154,7 +174,34 @@ void MeshProcessing::calc_gauss_curvature() {
             mesh_.vertex_property<Scalar>("v:gauss_curvature", 0.0f);
     Mesh::Vertex_property<Scalar> v_weight =
             mesh_.vertex_property<Scalar>("v:weight", 0.0f);
+    Point d0, d1;
+    Scalar lb(-1.0f), ub(1.0f);
+
     // ------------- COPY YOUR FUNCTION FROM EXERCISE 4 ---------
+    Mesh::Vertex_around_vertex_circulator vv_c, vv_c2;
+    Scalar angles, cos_angle;
+    for (const auto &v : mesh_.vertices()) {
+        if (mesh_.is_boundary(v)) continue;
+
+        angles = 0.0f;
+
+        vv_c = mesh_.vertices(v);
+        vv_c2 = mesh_.vertices(v);
+
+        surface_mesh::Vec3 pos = mesh_.position(v);
+        for (const auto &v1 : vv_c) {
+            ++vv_c2; //this is safe as the circulator iterator is implemented circularly. i.e. incrementing end -> begin
+
+            d0 = mesh_.position(v1) - pos;
+            d1 = mesh_.position(*vv_c2) - pos;
+
+            cos_angle = min(ub, max(lb, dot(d0, d1) / (norm(d0) * norm(d1))));
+            angles += acos(cos_angle);
+        }
+
+        v_gauss_curvature[v] = float(2*M_PI - angles) * 2.0f * v_weight[v];
+
+    }
 }
 
 void MeshProcessing::calc_edges_weights() {
