@@ -19,7 +19,11 @@ Questions
 
 Do you experience analogous behavior for surfaces regarding the Gage-Hamilton-Grayson theorem?
 
-TODO
+Meshes are discrete and we are in discrete time. Therefore, as we use discrete-time, it may occur that we get
+self-intersections within one time step even though the mesh was convex before.
+So due to the discrete nature of meshes and the time used by the discrete-time solvers, the theorem does not applay.
+However, we believe that it should apply for general 3D continuous surfaces, where also the diffusion evolves in
+continuous time.
 
 
 Feature enhance on bad and nice face mesh
