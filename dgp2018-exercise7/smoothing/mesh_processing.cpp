@@ -120,7 +120,7 @@ namespace mesh_processing {
 
         // ========================================================================
         // TODO: IMPLEMENTATION FOR EXERCISE 2 HERE --> DONE :)
-        const double lambda = 1e5;
+        const double lambda = 1e4;
 
         /* We solve: AX = B ==> (I - delta t lambda L) P(t+1) = P(t)
          * Let L = DM and left-multiply by inv(D), then
@@ -161,11 +161,7 @@ namespace mesh_processing {
         // copy solution
         for (int i = 0; i < n; ++i) {
             Mesh::Vertex v(i);
-
-
-            // skip update for constrained boundary
-            if (mesh_.is_boundary(v)) { continue; }
-
+            if (mesh_.is_boundary(v)) continue;
             for (int dim = 0; dim < 3; ++dim)
                 points[v][dim] = X(i, dim);
         }
