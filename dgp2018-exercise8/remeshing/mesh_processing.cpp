@@ -62,6 +62,11 @@ namespace mesh_processing {
         Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
         Mesh::Vertex_property <Scalar> target_new_length = mesh_.vertex_property<Scalar>("v:newlength", 0);
 
+        // our helpers
+        Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
+        Mesh::Vertex_property <Scalar> v_new_target_length = mesh_.vertex_property<Scalar>("v:vnewtargetlength", 0);
+
+        // user specified target length
         const float TARGET_LENGTH = 2.0;
 
         if (remeshing_type == AVERAGE) {
@@ -80,20 +85,36 @@ namespace mesh_processing {
             for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it) {
                 length = 1.0;
                 if (!mesh_.is_boundary(*v_it)) {
-                    Scalar max_curvature(curvature[*v_it] + sqrtf(curvature[*v_it] * curvature[*v_it] - gauss_curvature[*v_it]));
-                    target_length[*v_it] = TARGET_LENGTH / max_curvature;
+                    max_curvature[*v_it] = curvature[*v_it] + sqrtf(curvature[*v_it] * curvature[*v_it] - gauss_curvature[*v_it]);
+                    target_length[*v_it] = TARGET_LENGTH / max_curvature[*v_it];
                 }
                 target_length[*v_it] = length;
             }
 
-            // smooth desired length
+            // smooth desired length uniformly
             for (int i = 0; i < 5; i++) {
+                for (const auto &v1 : mesh_.vertices()) {
+                    v_new_target_length[v1] = 0.;
 
+                    int n = 0; // number of neighbors
+                    for (const auto &v2 : mesh_.vertices(v1)) {
+                        v_new_target_length[v1] += target_length[v2] - target_length[v1];
+                        n += 1;
+                    }
+                    v_new_target_length[v1] /= n;
+                }
+            }
+
+            // calculate mean of v_new_target_length
+            Scalar mean_length(0.);
+            unsigned int N = mesh_.n_vertices();
+            for (const auto &v : mesh_.vertices()) {
+                mean_length += v_new_target_length[v] / N;
             }
 
             // rescale desired length
-            for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it) {
-
+            for (const auto &v : mesh_.vertices()) {
+                target_new_length[v] = v_new_target_length[v] * (TARGET_LENGTH / mean_length);
             }
         }
     }
