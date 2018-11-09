@@ -85,7 +85,8 @@ namespace mesh_processing {
             for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it) {
                 length = 1.0;
                 if (!mesh_.is_boundary(*v_it)) {
-                    max_curvature[*v_it] = curvature[*v_it] + sqrtf(curvature[*v_it] * curvature[*v_it] - gauss_curvature[*v_it]);
+                    max_curvature[*v_it] =
+                            curvature[*v_it] + sqrtf(curvature[*v_it] * curvature[*v_it] - gauss_curvature[*v_it]);
                     target_length[*v_it] = TARGET_LENGTH / max_curvature[*v_it];
                 }
                 target_length[*v_it] = length;
