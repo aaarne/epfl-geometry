@@ -12,6 +12,10 @@ For exercise 2 (implicit smoothing) we use the following equation to compute the
                 A                  X    =     B
 
 where we create the sparse matrix A and the dense matrix B.
+We compute the implicit solution for all vertices, but only update the non-boundary vertices in the end.
+
+We observe, that for implicit smoothing we need high lambdas (~ 10^4) in order to see an impact on open meshes.
+On the closed bunny mesh a small lambda of 1/2 already shown an impact.
 
 
 Questions

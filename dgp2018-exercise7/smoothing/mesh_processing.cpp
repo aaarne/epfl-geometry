@@ -161,9 +161,10 @@ namespace mesh_processing {
         // copy solution
         for (int i = 0; i < n; ++i) {
             Mesh::Vertex v(i);
-            if (mesh_.is_boundary(v)) continue;
-            for (int dim = 0; dim < 3; ++dim)
+            if (mesh_.is_boundary(v)) { continue; }
+            for (int dim = 0; dim < 3; ++dim) {
                 points[v][dim] = X(i, dim);
+            }
         }
 
         // clean-up
