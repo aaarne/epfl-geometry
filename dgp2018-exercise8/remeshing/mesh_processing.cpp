@@ -149,11 +149,15 @@ namespace mesh_processing {
                 if (upper_ratio * mesh_.edge_length(edge) > desired_length) {
                     finished = false;
 
-                    Point newNormal = (normals[v0] * target_length[v0] + normals[v1] * target_length[v1]) /
-                                      (target_length[v0] + target_length[v1]);
+                    Point newNormal = (.5f*normals[v0] + .5f*normals[v1]);
+                    Point newPoint = mesh_.position(v0) + .5*(mesh_.position(v1) - mesh_.position(v0));
 
+                    auto new_vertex = mesh_.add_vertex(newPoint);
+                    normals[new_vertex] = newNormal;
+                    mesh_.split(edge, new_vertex);
                 }
             }
+            mesh_.update_vertex_normals();
         }
     }
 
