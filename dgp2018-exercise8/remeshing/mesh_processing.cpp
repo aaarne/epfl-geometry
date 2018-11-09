@@ -76,12 +76,12 @@ namespace mesh_processing {
             // Rescale the property target_new_length such that it's mean equals the user specified TARGET_LENGTH
             // ------------- IMPLEMENT HERE ---------
 
-
             // calculate desired length
             for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it) {
                 length = 1.0;
                 if (!mesh_.is_boundary(*v_it)) {
-
+                    Scalar max_curvature(curvature[*v_it] + sqrtf(curvature[*v_it] * curvature[*v_it] - gauss_curvature[*v_it]));
+                    target_length[*v_it] = TARGET_LENGTH / max_curvature;
                 }
                 target_length[*v_it] = length;
             }
