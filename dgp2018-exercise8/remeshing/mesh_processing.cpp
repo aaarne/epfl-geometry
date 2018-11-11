@@ -42,8 +42,8 @@ namespace mesh_processing {
 
         // main remeshing loop
         for (int i = 0; i < num_iterations; ++i) {
-            split_long_edges();
-            collapse_short_edges();
+//            split_long_edges();
+//            collapse_short_edges();
             equalize_valences();
 //            tangential_relaxation();
         }
@@ -151,7 +151,7 @@ namespace mesh_processing {
                     finished = false;
                     v = mesh_.split(edge,
                                     mesh_.position(v0) + .5 * (mesh_.position(v1) - mesh_.position(v0)));
-                    normals[v] = .5f * normals[v0] + .5f * normals[v1];
+                    normals[v] = .5*normals[v0] + .5*normals[v1];
                     target_length[v] = desired_length;
                     c++;
                 }
@@ -168,7 +168,7 @@ namespace mesh_processing {
         bool finished;
         int i, c = 0;
 
-        const float lower_ratio = 4/5.f;
+        const float lower_ratio = 4 / 5.f;
 
         Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
 
@@ -218,12 +218,10 @@ namespace mesh_processing {
         Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
         Mesh::Vertex v0, v1, v2, v3;
         Mesh::Halfedge h;
-        int val0, val1, val2, val3;
-        int val_opt0, val_opt1, val_opt2, val_opt3;
         int ve0, ve1, ve2, ve3, ve_before, ve_after;
         bool finished;
         int i;
-
+        int c = 0;
 
         // flip all edges
         for (finished = false, i = 0; !finished && i < 100; ++i) {
@@ -238,9 +236,53 @@ namespace mesh_processing {
                     //  If valence deviance is decreased and flip is possible, flip the vertex
                     //  Leave the loop running until no collapse has been done (use the finished variable)
                     // ------------- IMPLEMENT HERE ---------
+                    v0 = mesh_.vertex(*e_it, 0);
+                    v1 = mesh_.vertex(*e_it, 1);
+
+                    // Idea: we compute the set intersection of the circular neigborhood of the vertices to get the
+                    // two other vertices involved in an edge flip
+                    std::vector<Mesh::Vertex> intersection, v0_nbhd, v1_nbhd;
+                    for (const auto &v : mesh_.vertices(v0)) v0_nbhd.push_back(v);
+                    for (const auto &v : mesh_.vertices(v1)) v1_nbhd.push_back(v);
+                    std::sort(v0_nbhd.begin(), v0_nbhd.end());
+                    std::sort(v1_nbhd.begin(), v1_nbhd.end());
+                    std::set_intersection(v0_nbhd.begin(), v0_nbhd.end(), v1_nbhd.begin(), v1_nbhd.end(),
+                                          std::back_inserter(intersection));
+
+                    if (intersection.size() < 2) continue;
+                    v2 = intersection[0];
+                    v3 = intersection[1];
+
+                    // compute deviations
+                    auto compute_deviation = [this](Mesh::Vertex &v) -> int {
+                        int opt = mesh_.is_boundary(v) ? 4 : 6;
+                        return mesh_.valence(v) - opt;
+                    };
+                    ve0 = compute_deviation(v0);
+                    ve1 = compute_deviation(v1);
+                    ve2 = compute_deviation(v2);
+                    ve3 = compute_deviation(v3);
+                    ve_before = ve0 * ve0 + ve1 * ve1 + ve2 * ve2 + ve3 * ve3;
+
+                    // the vertices on the edge *e_it will loose 1 in valence and the other ones get one
+                    --ve0;
+                    --ve1;
+                    ve2++;
+                    ve3++;
+                    ve_after = ve0 * ve0 + ve1 * ve1 + ve2 * ve2 + ve3 * ve3;
+
+                    if (ve_after < ve_before && mesh_.is_flip_ok(*e_it)) {
+                        finished = false;
+                        mesh_.flip(*e_it);
+                        c++;
+                    }
                 }
             }
+            mesh_.update_vertex_normals();
+            mesh_.update_face_normals();
         }
+
+        cout << "Flipped " << c << " edges." << endl;
 
         if (i == 100) std::cerr << "flip break\n";
     }
