@@ -45,8 +45,9 @@ namespace mesh_processing {
         for (int i = 0; i < num_iterations; ++i) {
             split_long_edges();
             collapse_short_edges();
-//            equalize_valences();
+            equalize_valences();
             tangential_relaxation();
+            std::flush(cout);
         }
     }
 
@@ -152,12 +153,11 @@ namespace mesh_processing {
                     finished = false;
                     v = mesh_.split(edge,
                                     mesh_.position(v0) + .5 * (mesh_.position(v1) - mesh_.position(v0)));
-                    normals[v] = .5*normals[v0] + .5*normals[v1];
+                    normals[v] = .5 * normals[v0] + .5 * normals[v1];
                     target_length[v] = desired_length;
                     c++;
                 }
             }
-            mesh_.update_vertex_normals();
         }
         cout << "Splitted " << c << " long edges." << endl;
     }
@@ -194,6 +194,7 @@ namespace mesh_processing {
 
                     bool do_collapse = mesh_.edge_length(*e_it) < lower_ratio * desired_length;
 
+                    // only collapse edges not touching the boundary, except entirely in the boundary
                     do_collapse &= mesh_.is_boundary(v0) != mesh_.is_boundary(v1);
 
                     h01 = mesh_.halfedge(*e_it, 0);
@@ -229,7 +230,7 @@ namespace mesh_processing {
             finished = true;
 
             for (e_it = mesh_.edges_begin(); e_it != e_end; ++e_it) {
-                if (!mesh_.is_boundary(*e_it)) {
+                if (!mesh_.is_boundary(*e_it) && !mesh_.is_deleted(*e_it)) {
                     // ------------- IMPLEMENT HERE ---------
                     //  Extract valences of the four vertices involved to an eventual flip.
                     //  Compute the sum of the squared valence deviances before flip
@@ -240,19 +241,9 @@ namespace mesh_processing {
                     v0 = mesh_.vertex(*e_it, 0);
                     v1 = mesh_.vertex(*e_it, 1);
 
-                    // Idea: we compute the set intersection of the circular neigborhood of the vertices to get the
-                    // two other vertices involved in an edge flip
-                    std::vector<Mesh::Vertex> intersection, v0_nbhd, v1_nbhd;
-                    for (const auto &v : mesh_.vertices(v0)) v0_nbhd.push_back(v);
-                    for (const auto &v : mesh_.vertices(v1)) v1_nbhd.push_back(v);
-                    std::sort(v0_nbhd.begin(), v0_nbhd.end());
-                    std::sort(v1_nbhd.begin(), v1_nbhd.end());
-                    std::set_intersection(v0_nbhd.begin(), v0_nbhd.end(), v1_nbhd.begin(), v1_nbhd.end(),
-                                          std::back_inserter(intersection));
-
-                    if (intersection.size() != 2) continue;
-                    v2 = intersection[0];
-                    v3 = intersection[1];
+                    // Find the two other vertices
+                    for (const auto &v : mesh_.vertices(mesh_.face(*e_it, 0))) if (v != v0 && v != v1) v2 = v;
+                    for (const auto &v : mesh_.vertices(mesh_.face(*e_it, 1))) if (v != v0 && v != v1) v3 = v;
 
                     // compute deviations
                     auto compute_deviation = [this](Mesh::Vertex &v) -> int {
@@ -279,10 +270,9 @@ namespace mesh_processing {
                     }
                 }
             }
-            mesh_.update_vertex_normals();
-            mesh_.update_face_normals();
         }
 
+        mesh_.garbage_collection();
         cout << "Flipped " << c << " edges." << endl;
 
         if (i == 100) std::cerr << "flip break\n";

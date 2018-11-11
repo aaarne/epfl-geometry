@@ -256,7 +256,6 @@ namespace mesh_processing {
                 mesh_.edge_property<Scalar>("e:weight", 0.0f);
         Mesh::Vertex_property <Scalar> v_weight =
                 mesh_.vertex_property<Scalar>("v:weight", 0.0f);
-        // ------------- COPY YOUR FUNCTION FROM EXERCISE 4 ---------
         Point laplace(0.0);
         for (const auto &v : mesh_.vertices()) {
             laplace = 0;
