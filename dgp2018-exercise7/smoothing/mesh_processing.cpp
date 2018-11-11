@@ -238,7 +238,6 @@ namespace mesh_processing {
         Mesh::Vertex_property <Scalar> v_unicurvature =
                 mesh_.vertex_property<Scalar>("v:unicurvature", 0.0f);
         Point laplace(0.0);
-        // ------------- COPY YOUR FUNCTION FROM EXERCISE 4 ---------
         for (const auto &v : mesh_.vertices()) {
             laplace = 0;
             int N = 0;
@@ -278,7 +277,6 @@ namespace mesh_processing {
         Point d0, d1;
         Scalar lb(-1.0f), ub(1.0f);
 
-        // ------------- COPY YOUR FUNCTION FROM EXERCISE 4 ---------
         Mesh::Vertex_around_vertex_circulator vv_c, vv_c2;
         Scalar angles, cos_angle;
         for (const auto &v : mesh_.vertices()) {

@@ -13,6 +13,7 @@
 #include "mesh_processing.h"
 #include <set>
 #include <cmath>
+#include <Eigen/Geometry>
 
 namespace mesh_processing {
 
@@ -42,10 +43,10 @@ namespace mesh_processing {
 
         // main remeshing loop
         for (int i = 0; i < num_iterations; ++i) {
-//            split_long_edges();
-//            collapse_short_edges();
-            equalize_valences();
-//            tangential_relaxation();
+            split_long_edges();
+            collapse_short_edges();
+//            equalize_valences();
+            tangential_relaxation();
         }
     }
 
@@ -249,7 +250,7 @@ namespace mesh_processing {
                     std::set_intersection(v0_nbhd.begin(), v0_nbhd.end(), v1_nbhd.begin(), v1_nbhd.end(),
                                           std::back_inserter(intersection));
 
-                    if (intersection.size() < 2) continue;
+                    if (intersection.size() != 2) continue;
                     v2 = intersection[0];
                     v3 = intersection[1];
 
@@ -289,10 +290,10 @@ namespace mesh_processing {
 
     void MeshProcessing::tangential_relaxation() {
         Mesh::Vertex_iterator v_it, v_end(mesh_.vertices_end());
-        Mesh::Vertex_around_vertex_circulator vv_c, vv_end;
         int valence;
         Point u, n;
         Point laplace;
+        int c = 0;
 
         Mesh::Vertex_property <Point> normals = mesh_.vertex_property<Point>("v:normal");
         Mesh::Vertex_property <Point> update = mesh_.vertex_property<Point>("v:update");
@@ -306,6 +307,26 @@ namespace mesh_processing {
                     //  Compute the tangential component of the laplacian vector and move the vertex
                     //  Store smoothed vertex location in the update vertex property.
                     // ------------- IMPLEMENT HERE ---------
+                    valence = mesh_.valence(*v_it);
+                    for (const auto &v1 : mesh_.vertices(*v_it)) {
+                        laplace += mesh_.position(v1) - mesh_.position(*v_it);
+                    }
+                    laplace /= valence;
+
+                    // Use Eigen geometry package to project vector
+                    Eigen::Vector3d normal, lap, proj;
+                    n = normals[*v_it];
+                    normal << n.x, n.y, n.z;
+                    lap << laplace.x, laplace.y, laplace.z;
+
+                    Eigen::Hyperplane<double, 3> tangentPlane(normal, 0);
+                    proj = tangentPlane.projection(lap);
+
+                    u = Point(proj(0), proj(1), proj(2));
+
+                    // Set update to the projection
+                    update[*v_it] = Point(proj(0), proj(1), proj(2));
+                    c++;
                 }
             }
 
@@ -313,6 +334,7 @@ namespace mesh_processing {
                 if (!mesh_.is_boundary(*v_it))
                     mesh_.position(*v_it) += update[*v_it];
         }
+        cout << "Moved " << c << " vertices." << endl;
     }
 
     void MeshProcessing::calc_uniform_mean_curvature() {
@@ -323,6 +345,16 @@ namespace mesh_processing {
         // the length of the uniform Laplacian approximation
         // Save your approximation in unicurvature vertex property of the mesh.
         // ------------- IMPLEMENT HERE ---------
+        Point laplace(0.0);
+        for (const auto &v : mesh_.vertices()) {
+            laplace = 0;
+            int N = 0;
+            for (const auto &v2 : mesh_.vertices(v)) {
+                laplace += mesh_.position(v2) - mesh_.position(v);
+                N++;
+            }
+            v_unicurvature[v] = norm(laplace / N);
+        }
     }
 
     void MeshProcessing::calc_mean_curvature() {
@@ -339,6 +371,16 @@ namespace mesh_processing {
         // Save your approximation in v_curvature vertex property of the mesh.
         // Use the weights from calc_weights(): e_weight and v_weight
         // ------------- IMPLEMENT HERE ---------
+        Point laplace(0.0);
+        for (const auto &v : mesh_.vertices()) {
+            laplace = 0;
+            for (const auto &v2 : mesh_.vertices(v)) {
+                Mesh::Edge e = mesh_.find_edge(v, v2);
+                laplace += e_weight[e] * (mesh_.position(v2) - mesh_.position(v));
+            }
+            laplace *= v_weight[v];
+            v_curvature[v] = norm(laplace);
+        }
     }
 
     void MeshProcessing::calc_gauss_curvature() {
@@ -354,6 +396,32 @@ namespace mesh_processing {
         // you pass to the acos function is between -1.0 and 1.0.
         // Use the v_weight property for the area weight.
         // ------------- IMPLEMENT HERE ---------
+        Mesh::Vertex_around_vertex_circulator vv_c, vv_c2;
+        Scalar angles, cos_angle;
+        Point d0, d1;
+        Scalar lb(-1.0f), ub(1.0f);
+        for (const auto &v : mesh_.vertices()) {
+            if (mesh_.is_boundary(v)) continue;
+
+            angles = 0.0f;
+
+            vv_c = mesh_.vertices(v);
+            vv_c2 = mesh_.vertices(v);
+
+            surface_mesh::Vec3 pos = mesh_.position(v);
+            for (const auto &v1 : vv_c) {
+                ++vv_c2; //this is safe as the circulator iterator is implemented circularly. i.e. incrementing end -> begin
+
+                d0 = mesh_.position(v1) - pos;
+                d1 = mesh_.position(*vv_c2) - pos;
+
+                cos_angle = min(ub, max(lb, dot(d0, d1) / (norm(d0) * norm(d1))));
+                angles += acos(cos_angle);
+            }
+
+            v_gauss_curvature[v] = float(2 * M_PI - angles) * 2.0f * v_weight[v];
+
+        }
     }
 
     void MeshProcessing::calc_weights() {
