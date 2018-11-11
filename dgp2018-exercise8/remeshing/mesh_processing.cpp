@@ -43,9 +43,9 @@ namespace mesh_processing {
         // main remeshing loop
         for (int i = 0; i < num_iterations; ++i) {
             split_long_edges();
-            collapse_short_edges();
-            equalize_valences();
-            tangential_relaxation();
+//            collapse_short_edges();
+//            equalize_valences();
+//            tangential_relaxation();
         }
     }
 
@@ -132,6 +132,7 @@ namespace mesh_processing {
 
         for (finished = false, i = 0; !finished && i < 100; ++i) {
             finished = true;
+            int c = 0;
             // ------------- IMPLEMENT HERE ---------
             // INSERT CODE:
             //  Compute the desired length as the mean between the property target_length of two vertices of the edge
@@ -146,17 +147,16 @@ namespace mesh_processing {
                 v0 = mesh_.vertex(edge, 0);
                 v1 = mesh_.vertex(edge, 1);
                 float desired_length = .5f * target_length[v0] + .5f * target_length[v1];
-                if (upper_ratio * mesh_.edge_length(edge) > desired_length) {
+                if (mesh_.edge_length(edge) > upper_ratio * desired_length) {
                     finished = false;
-
-                    Point newNormal = (.5f*normals[v0] + .5f*normals[v1]);
-                    Point newPoint = mesh_.position(v0) + .5*(mesh_.position(v1) - mesh_.position(v0));
-
-                    auto new_vertex = mesh_.add_vertex(newPoint);
-                    normals[new_vertex] = newNormal;
-                    mesh_.split(edge, new_vertex);
+                    v = mesh_.split(edge,
+                                    mesh_.position(v0) + .5 * (mesh_.position(v1) - mesh_.position(v0)));
+                    normals[v] = .5f * normals[v0] + .5f * normals[v1];
+                    target_length[v] = desired_length;
+                    c++;
                 }
             }
+            cout << "Splitted " << c << " long edges in run " << i << "." << endl;
             mesh_.update_vertex_normals();
         }
     }
