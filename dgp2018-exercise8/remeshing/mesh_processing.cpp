@@ -43,8 +43,8 @@ namespace mesh_processing {
         // main remeshing loop
         for (int i = 0; i < num_iterations; ++i) {
             split_long_edges();
-//            collapse_short_edges();
-//            equalize_valences();
+            collapse_short_edges();
+            equalize_valences();
 //            tangential_relaxation();
         }
     }
@@ -124,6 +124,7 @@ namespace mesh_processing {
         Mesh::Vertex v0, v1, v;
         bool finished;
         int i;
+        int c = 0;
 
         const float upper_ratio = 4 / 3.f;
 
@@ -132,7 +133,6 @@ namespace mesh_processing {
 
         for (finished = false, i = 0; !finished && i < 100; ++i) {
             finished = true;
-            int c = 0;
             // ------------- IMPLEMENT HERE ---------
             // INSERT CODE:
             //  Compute the desired length as the mean between the property target_length of two vertices of the edge
@@ -156,24 +156,24 @@ namespace mesh_processing {
                     c++;
                 }
             }
-            cout << "Splitted " << c << " long edges in run " << i << "." << endl;
             mesh_.update_vertex_normals();
         }
+        cout << "Splitted " << c << " long edges." << endl;
     }
 
     void MeshProcessing::collapse_short_edges() {
         Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
         Mesh::Vertex v0, v1;
         Mesh::Halfedge h01, h10;
-        bool finished, b0, b1;
-        int i;
-        bool hcol01, hcol10;
+        bool finished;
+        int i, c = 0;
+
+        const float lower_ratio = 4/5.f;
 
         Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
 
         for (finished = false, i = 0; !finished && i < 100; ++i) {
             finished = true;
-
             for (e_it = mesh_.edges_begin(); e_it != e_end; ++e_it) {
                 if (!mesh_.is_deleted(*e_it)) // might already be deleted
                 {
@@ -187,10 +187,28 @@ namespace mesh_processing {
                     //		Collapse the halfedge
                     // Leave the loop running until no collapse has been done (use the finished variable)
                     // ------------- IMPLEMENT HERE ---------
+                    v0 = mesh_.vertex(*e_it, 0);
+                    v1 = mesh_.vertex(*e_it, 1);
+                    float desired_length = .5f * target_length[v0] + .5f * target_length[v1];
+
+                    bool do_collapse = mesh_.edge_length(*e_it) < lower_ratio * desired_length;
+
+                    do_collapse &= mesh_.is_boundary(v0) != mesh_.is_boundary(v1);
+
+                    h01 = mesh_.halfedge(*e_it, 0);
+                    h10 = mesh_.halfedge(*e_it, 1);
+                    do_collapse &= mesh_.is_collapse_ok(h01) || mesh_.is_collapse_ok(h10);
+
+                    if (do_collapse) {
+                        finished = false;
+                        mesh_.collapse(mesh_.is_collapse_ok(h01) ? h01 : h10);
+                        c++;
+                    }
                 }
             }
         }
 
+        cout << "Collapsed " << c << " short edges." << endl;
         mesh_.garbage_collection();
 
         if (i == 100) std::cerr << "collapse break\n";
