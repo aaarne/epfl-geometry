@@ -130,6 +130,7 @@ namespace mesh_processing {
         Mesh::Vertex v0, v1, v;
         bool finished;
         int i;
+        int c = 0;
 
         const double upper_ratio = 4. / 3;
 
@@ -157,9 +158,11 @@ namespace mesh_processing {
                     v = mesh_.split(*e_it, mesh_.position(v0) + .5 * (mesh_.position(v1) - mesh_.position(v0)));
                     normals[v] = .5 * normals[v0] + .5 * normals[v1];
                     target_length[v] = desired_length;
+                    c++;
                 }
             }
         }
+        cout << "Split " << c << " long edges in " << i << " iterations." << endl;
     }
 
     void MeshProcessing::collapse_short_edges() {
@@ -216,13 +219,8 @@ namespace mesh_processing {
             }
         }
 
-        cout << "EULeER" << endl;
-        cout << mesh_.n_vertices() << endl;
-
-        mesh_.garbage_collection();
-        cout << mesh_.n_vertices() << endl;
-
         cout << "Collapsed " << c << " short edges in " << i << " iterations." << endl;
+        mesh_.garbage_collection();
 
         if (i == 100) std::cerr << "collapse break\n";
     }
@@ -236,14 +234,14 @@ namespace mesh_processing {
         int ve0, ve1, ve2, ve3, ve_before, ve_after;
         bool finished;
         int i;
-
+        int c = 0;
 
         // flip all edges
         for (finished = false, i = 0; !finished && i < 100; ++i) {
             finished = true;
 
             for (e_it = mesh_.edges_begin(); e_it != e_end; ++e_it) {
-                if (!mesh_.is_boundary(*e_it)) {
+                if (!mesh_.is_boundary(*e_it) && !mesh_.is_deleted(*e_it)) {
                     // ------------- IMPLEMENT HERE ---------
                     //  Extract valences of the four vertices involved to an eventual flip.
                     //  Compute the sum of the squared valence deviances before flip
@@ -263,7 +261,7 @@ namespace mesh_processing {
                                 return v;
                             }
                         }
-                        return Mesh::Vertex(-1);
+                        throw std::runtime_error("nothing found");
                     };
                     v2 = find_third_vertex(0);
                     v3 = find_third_vertex(1);
@@ -286,10 +284,13 @@ namespace mesh_processing {
                     if (ve_after < ve_before && mesh_.is_flip_ok(*e_it)) {
                         finished = false;
                         mesh_.flip(*e_it);
+                        c++;
                     }
                 }
             }
         }
+
+        cout << "Flipped " << c << " edges in " << i << " iterations." << endl;
 
         if (i == 100) std::cerr << "flip break\n";
     }
@@ -300,12 +301,13 @@ namespace mesh_processing {
         int valence;
         Point u, n;
         Point laplace;
+        int c = 0;
 
         Mesh::Vertex_property <Point> normals = mesh_.vertex_property<Point>("v:normal");
         Mesh::Vertex_property <Point> update = mesh_.vertex_property<Point>("v:update");
 
         // smooth
-        for (int iters = 0; iters < 10; ++iters) {
+        for (int iters = 0; iters < 1; ++iters) { // TODO rechange to 10
             for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it) {
                 if (!mesh_.is_boundary(*v_it)) {
                     // ------------- IMPLEMENT HERE ---------
@@ -313,7 +315,7 @@ namespace mesh_processing {
                     //  Compute the tangential component of the laplacian vector and move the vertex
                     //  Store smoothed vertex location in the update vertex property.
                     // ------------- IMPLEMENT HERE ---------
-
+                    laplace = Point(0, 0, 0);
                     for (const auto &v1 : mesh_.vertices(*v_it)) {
                         laplace += mesh_.position(v1) - mesh_.position(*v_it);
                     }
@@ -332,7 +334,7 @@ namespace mesh_processing {
                     u = Point(proj(0), proj(1), proj(2));
 
                     // Set update to the projection
-                    update[*v_it] = Point(proj(0), proj(1), proj(2));
+                    update[*v_it] = u;
                 }
             }
 
@@ -340,6 +342,7 @@ namespace mesh_processing {
                 if (!mesh_.is_boundary(*v_it))
                     mesh_.position(*v_it) += update[*v_it];
         }
+        cout << "Moved " << c << " vertices." << endl;
     }
 
     void MeshProcessing::calc_uniform_mean_curvature() {
@@ -496,6 +499,7 @@ namespace mesh_processing {
                 const Point &R = mesh_.position(*fv_c);
 
                 area += norm(cross(Q - P, R - P)) * 0.5f * 0.3333f;
+
 
             } while (++vf_c != vf_end);
 
