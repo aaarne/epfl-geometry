@@ -58,14 +58,10 @@ namespace mesh_processing {
         Scalar H;
         Scalar K;
 
-        Mesh::Vertex_property <Scalar> curvature = mesh_.vertex_property<Scalar>("v:mean_curvature", 0);
+        Mesh::Vertex_property <Scalar> curvature = mesh_.vertex_property<Scalar>("v:curvature", 0);
         Mesh::Vertex_property <Scalar> gauss_curvature = mesh_.vertex_property<Scalar>("v:gauss_curvature", 0);
         Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
         Mesh::Vertex_property <Scalar> target_new_length = mesh_.vertex_property<Scalar>("v:newlength", 0);
-
-        // our helpers
-            Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
-        Mesh::Vertex_property <Scalar> v_new_target_length = mesh_.vertex_property<Scalar>("v:vnewtargetlength", 0);
 
         // user specified target length
         const float TARGET_LENGTH = 2.0;
@@ -75,15 +71,18 @@ namespace mesh_processing {
                 target_length[*v_it] = TARGET_LENGTH;
 
         } else if (remeshing_type == CURV) {
-            // our helpers
-            Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
-            Mesh::Vertex_property <Scalar> v_new_target_length = mesh_.vertex_property<Scalar>("v:vnewtargetlength", 0);
             // ------------- IMPLEMENT HERE ---------
             // Get the maximal curvature at each vertex (use the precomputed mean and gaussian curvature)
             // Calculate the desired edge length as the TARGET_LENGTH divided by the maximal curvature at each vertex, and assign it to the property target_length
             // Smooth the maximal curvature uniformly, use the property vnewtargetlength_ to store the smoothed values intermediately
             // Rescale the property target_new_length such that it's mean equals the user specified TARGET_LENGTH
             // ------------- IMPLEMENT HERE ---------
+
+            // our helper properties
+            Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
+            Mesh::Vertex_property <Scalar> v_new_target_length = mesh_.vertex_property<Scalar>("v:vnewtargetlength", 0);
+
+
 
             // calculate desired length
             for (const auto &v : mesh_.vertices()) {
@@ -96,7 +95,7 @@ namespace mesh_processing {
                 target_length[v] = length;
             }
 
-            // smooth desired length uniformly
+            // smooth desired length
             for (int i = 0; i < 5; i++) {
                 for (const auto &v1 : mesh_.vertices()) {
                     v_new_target_length[v1] = 0.;
@@ -127,11 +126,10 @@ namespace mesh_processing {
     }
 
     void MeshProcessing::split_long_edges() {
-        Mesh::Vertex v0, v1;
         Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
+        Mesh::Vertex v0, v1, v;
         bool finished;
         int i;
-        int c = 0;
 
         const double upper_ratio = 4. / 3;
 
@@ -140,6 +138,15 @@ namespace mesh_processing {
 
         for (finished = false, i = 0; !finished && i < 100; ++i) {
             finished = true;
+            // ------------- IMPLEMENT HERE ---------
+            // INSERT CODE:
+            //  Compute the desired length as the mean between the property target_length of two vertices of the edge
+            //  If the edge is longer than 4/3 * desired length
+            //		add the midpoint to the mesh
+            //		set the interpolated normal and interpolated vtargetlength_ property to the vertex
+            //		split the edge with this vertex (use openMesh function split)
+            // Leave the loop running until no splits are done (use the finished variable)
+            // ------------- IMPLEMENT HERE ---------
 
             for (e_it = mesh_.edges_begin(); e_it != e_end; ++e_it) {
                 v0 = mesh_.vertex(*e_it, 0);
@@ -147,22 +154,21 @@ namespace mesh_processing {
                 float desired_length = .5f * target_length[v0] + .5f * target_length[v1];
                 if (mesh_.edge_length(*e_it) > upper_ratio * desired_length) {
                     finished = false;
-                    auto v = mesh_.split(*e_it, mesh_.position(v0) + .5 * (mesh_.position(v1) - mesh_.position(v0)));
+                    v = mesh_.split(*e_it, mesh_.position(v0) + .5 * (mesh_.position(v1) - mesh_.position(v0)));
                     normals[v] = .5 * normals[v0] + .5 * normals[v1];
                     target_length[v] = desired_length;
-                    c++;
                 }
             }
         }
-        cout << "Split " << c << " long edges in " << i << " iterations." << endl;
     }
 
     void MeshProcessing::collapse_short_edges() {
         Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
         Mesh::Vertex v0, v1;
         Mesh::Halfedge h01, h10, h;
-        bool finished;
+        bool finished, b0, b1;
         int i, c = 0;
+        bool hcol01, hcol10;
 
         const double lower_ratio = 4. / 5;
 
@@ -170,6 +176,7 @@ namespace mesh_processing {
 
         for (finished = false, i = 0; !finished && i < 100; ++i) {
             finished = true;
+
             for (e_it = mesh_.edges_begin(); e_it != e_end; ++e_it) {
                 if (!mesh_.is_deleted(*e_it)) // might already be deleted
                 {
@@ -188,32 +195,34 @@ namespace mesh_processing {
 
                     v0 = mesh_.to_vertex(h01);
                     v1 = mesh_.to_vertex(h10);
+
                     float desired_length = .5f * target_length[v0] + .5f * target_length[v1];
 
                     if (mesh_.edge_length(*e_it) < lower_ratio * desired_length) {
                         // only collapse edges not touching the boundary, except entirely in the boundary
 
-
-                        if (mesh_.is_boundary(v0)) {
-                            h = h01;
-                        } else if (mesh_.is_boundary(v1)) {
-                            h = h10;
-                        } else {
-                            if (mesh_.is_collapse_ok(h01)) h = h01;
-                            else if (mesh_.is_collapse_ok(h10)) h = h10;
-                            else continue;
+                        if (mesh_.is_collapse_ok(h01)) {
+                            finished = false;
+                            mesh_.collapse(h01);
+                            c++;
+                        } else if (mesh_.is_collapse_ok(h10)) {
+                            finished = false;
+                            mesh_.collapse(h10);
+                            c++;
                         }
 
-                        finished = false;
-                        mesh_.collapse(h);
-                        c++;
                     }
                 }
             }
         }
 
-        cout << "Collapsed " << c << " short edges in " << i << " iterations." << endl;
+        cout << "EULeER" << endl;
+        cout << mesh_.n_vertices() << endl;
+
         mesh_.garbage_collection();
+        cout << mesh_.n_vertices() << endl;
+
+        cout << "Collapsed " << c << " short edges in " << i << " iterations." << endl;
 
         if (i == 100) std::cerr << "collapse break\n";
     }
@@ -221,17 +230,20 @@ namespace mesh_processing {
     void MeshProcessing::equalize_valences() {
         Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
         Mesh::Vertex v0, v1, v2, v3;
+        Mesh::Halfedge h;
+        int val0, val1, val2, val3;
+        int val_opt0, val_opt1, val_opt2, val_opt3;
         int ve0, ve1, ve2, ve3, ve_before, ve_after;
         bool finished;
         int i;
-        int c = 0;
+
 
         // flip all edges
         for (finished = false, i = 0; !finished && i < 100; ++i) {
             finished = true;
 
             for (e_it = mesh_.edges_begin(); e_it != e_end; ++e_it) {
-                if (!mesh_.is_boundary(*e_it) && !mesh_.is_deleted(*e_it)) {
+                if (!mesh_.is_boundary(*e_it)) {
                     // ------------- IMPLEMENT HERE ---------
                     //  Extract valences of the four vertices involved to an eventual flip.
                     //  Compute the sum of the squared valence deviances before flip
@@ -239,6 +251,7 @@ namespace mesh_processing {
                     //  If valence deviance is decreased and flip is possible, flip the vertex
                     //  Leave the loop running until no collapse has been done (use the finished variable)
                     // ------------- IMPLEMENT HERE ---------
+
                     v0 = mesh_.vertex(*e_it, 0);
                     v1 = mesh_.vertex(*e_it, 1);
 
@@ -273,22 +286,20 @@ namespace mesh_processing {
                     if (ve_after < ve_before && mesh_.is_flip_ok(*e_it)) {
                         finished = false;
                         mesh_.flip(*e_it);
-                        c++;
                     }
                 }
             }
         }
-
-        cout << "Flipped " << c << " edges in " << i << " iterations." << endl;
 
         if (i == 100) std::cerr << "flip break\n";
     }
 
     void MeshProcessing::tangential_relaxation() {
         Mesh::Vertex_iterator v_it, v_end(mesh_.vertices_end());
+        Mesh::Vertex_around_vertex_circulator vv_c, vv_end;
+        int valence;
         Point u, n;
         Point laplace;
-        int c = 0;
 
         Mesh::Vertex_property <Point> normals = mesh_.vertex_property<Point>("v:normal");
         Mesh::Vertex_property <Point> update = mesh_.vertex_property<Point>("v:update");
@@ -302,6 +313,7 @@ namespace mesh_processing {
                     //  Compute the tangential component of the laplacian vector and move the vertex
                     //  Store smoothed vertex location in the update vertex property.
                     // ------------- IMPLEMENT HERE ---------
+
                     for (const auto &v1 : mesh_.vertices(*v_it)) {
                         laplace += mesh_.position(v1) - mesh_.position(*v_it);
                     }
@@ -321,7 +333,6 @@ namespace mesh_processing {
 
                     // Set update to the projection
                     update[*v_it] = Point(proj(0), proj(1), proj(2));
-                    c++;
                 }
             }
 
@@ -329,7 +340,6 @@ namespace mesh_processing {
                 if (!mesh_.is_boundary(*v_it))
                     mesh_.position(*v_it) += update[*v_it];
         }
-        cout << "Moved " << c << " vertices." << endl;
     }
 
     void MeshProcessing::calc_uniform_mean_curvature() {
@@ -340,6 +350,7 @@ namespace mesh_processing {
         // the length of the uniform Laplacian approximation
         // Save your approximation in unicurvature vertex property of the mesh.
         // ------------- IMPLEMENT HERE ---------
+
         Point laplace(0.0);
         for (const auto &v : mesh_.vertices()) {
             laplace = 0;
@@ -354,7 +365,7 @@ namespace mesh_processing {
 
     void MeshProcessing::calc_mean_curvature() {
         Mesh::Vertex_property <Scalar> v_curvature =
-                mesh_.vertex_property<Scalar>("v:mean_curvature", 0.0f);
+                mesh_.vertex_property<Scalar>("v:curvature", 0.0f);
         Mesh::Edge_property <Scalar> e_weight =
                 mesh_.edge_property<Scalar>("e:weight", 0.0f);
         Mesh::Vertex_property <Scalar> v_weight =
@@ -366,6 +377,7 @@ namespace mesh_processing {
         // Save your approximation in v_curvature vertex property of the mesh.
         // Use the weights from calc_weights(): e_weight and v_weight
         // ------------- IMPLEMENT HERE ---------
+
         Point laplace(0.0);
         for (const auto &v : mesh_.vertices()) {
             laplace = 0;
@@ -391,10 +403,11 @@ namespace mesh_processing {
         // you pass to the acos function is between -1.0 and 1.0.
         // Use the v_weight property for the area weight.
         // ------------- IMPLEMENT HERE ---------
+
         Mesh::Vertex_around_vertex_circulator vv_c, vv_c2;
         Scalar angles, cos_angle;
         Point d0, d1;
-        Scalar lb(-1.0f), ub(1.0f);
+        Scalar lb(-.999f), ub(.999f);  // lower bound, upper bound for cos
         for (const auto &v : mesh_.vertices()) {
             if (mesh_.is_boundary(v)) continue;
 
@@ -415,7 +428,6 @@ namespace mesh_processing {
             }
 
             v_gauss_curvature[v] = float(2 * M_PI - angles) * 2.0f * v_weight[v];
-
         }
     }
 
@@ -550,7 +562,7 @@ namespace mesh_processing {
         Mesh::Vertex_property <Scalar> v_unicurvature =
                 mesh_.vertex_property<Scalar>("v:unicurvature", 0.0f);
         Mesh::Vertex_property <Scalar> v_curvature =
-                mesh_.vertex_property<Scalar>("v:mean_curvature", 0.0f);
+                mesh_.vertex_property<Scalar>("v:curvature", 0.0f);
         Mesh::Vertex_property <Scalar> v_gauss_curvature =
                 mesh_.vertex_property<Scalar>("v:gauss_curvature", 0.0f);
 
