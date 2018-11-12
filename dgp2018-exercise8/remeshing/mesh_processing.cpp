@@ -122,7 +122,7 @@ namespace mesh_processing {
     }
 
     void MeshProcessing::split_long_edges() {
-        Mesh::Vertex v0, v1, v;
+        Mesh::Vertex v0, v1;
         Mesh::Edge_iterator e_it, e_end(mesh_.edges().end());
         bool finished;
         int i;
@@ -142,8 +142,7 @@ namespace mesh_processing {
                 float desired_length = .5f * target_length[v0] + .5f * target_length[v1];
                 if (mesh_.edge_length(*e_it) > upper_ratio * desired_length) {
                     finished = false;
-                    v = mesh_.add_vertex(mesh_.position(v0) + .5 * (mesh_.position(v1) - mesh_.position(v0)));
-                    mesh_.split(*e_it, v);
+                    auto v = mesh_.split(*e_it, mesh_.position(v0) + .5 * (mesh_.position(v1) - mesh_.position(v0)));
                     normals[v] = .5 * normals[v0] + .5 * normals[v1];
                     target_length[v] = desired_length;
                     c++;
