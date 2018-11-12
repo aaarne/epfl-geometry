@@ -63,10 +63,6 @@ namespace mesh_processing {
         Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
         Mesh::Vertex_property <Scalar> target_new_length = mesh_.vertex_property<Scalar>("v:newlength", 0);
 
-        // our helpers
-            Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
-        Mesh::Vertex_property <Scalar> v_new_target_length = mesh_.vertex_property<Scalar>("v:vnewtargetlength", 0);
-
         // user specified target length
         const float TARGET_LENGTH = 2.0;
 
