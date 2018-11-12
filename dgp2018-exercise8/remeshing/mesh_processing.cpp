@@ -539,7 +539,7 @@ namespace mesh_processing {
         Mesh::Vertex_property <Scalar> v_unicurvature =
                 mesh_.vertex_property<Scalar>("v:unicurvature", 0.0f);
         Mesh::Vertex_property <Scalar> v_curvature =
-                mesh_.vertex_property<Scalar>("v:curvature", 0.0f);
+                mesh_.vertex_property<Scalar>("v:mean_curvature", 0.0f);
         Mesh::Vertex_property <Scalar> v_gauss_curvature =
                 mesh_.vertex_property<Scalar>("v:gauss_curvature", 0.0f);
 
