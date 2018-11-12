@@ -293,7 +293,7 @@ namespace mesh_processing {
         Mesh::Vertex_property <Point> update = mesh_.vertex_property<Point>("v:update");
 
         // smooth
-        for (int iters = 0; iters < 1; ++iters) {
+        for (int iters = 0; iters < 10; ++iters) {
             for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it) {
                 if (!mesh_.is_boundary(*v_it)) {
                     // ------------- IMPLEMENT HERE ---------
@@ -320,7 +320,7 @@ namespace mesh_processing {
                     u = Point(proj(0), proj(1), proj(2));
 
                     // Set update to the projection
-                    update[*v_it] = u;
+                    update[*v_it] = .1*u;
                 }
             }
 
