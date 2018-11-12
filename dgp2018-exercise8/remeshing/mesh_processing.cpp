@@ -58,8 +58,8 @@ namespace mesh_processing {
         Scalar H;
         Scalar K;
 
-        Mesh::Vertex_property <Scalar> curvature = mesh_.vertex_property<Scalar>("v:meancurvature", 0);
-        Mesh::Vertex_property <Scalar> gauss_curvature = mesh_.vertex_property<Scalar>("v:gausscurvature", 0);
+        Mesh::Vertex_property <Scalar> curvature = mesh_.vertex_property<Scalar>("v:mean_curvature", 0);
+        Mesh::Vertex_property <Scalar> gauss_curvature = mesh_.vertex_property<Scalar>("v:gauss_curvature", 0);
         Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
         Mesh::Vertex_property <Scalar> target_new_length = mesh_.vertex_property<Scalar>("v:newlength", 0);
 
@@ -123,7 +123,7 @@ namespace mesh_processing {
 
     void MeshProcessing::split_long_edges() {
         Mesh::Vertex v0, v1;
-        Mesh::Edge_iterator e_it, e_end(mesh_.edges().end());
+        Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
         bool finished;
         int i;
         int c = 0;
@@ -136,7 +136,7 @@ namespace mesh_processing {
         for (finished = false, i = 0; !finished && i < 100; ++i) {
             finished = true;
 
-            for (e_it = mesh_.edges().begin(); e_it != e_end; ++e_it) {
+            for (e_it = mesh_.edges_begin(); e_it != e_end; ++e_it) {
                 v0 = mesh_.vertex(*e_it, 0);
                 v1 = mesh_.vertex(*e_it, 1);
                 float desired_length = .5f * target_length[v0] + .5f * target_length[v1];
@@ -149,7 +149,7 @@ namespace mesh_processing {
                 }
             }
         }
-        cout << "Split " << c  << " long edges in " << i << " iterations." << endl;
+        cout << "Split " << c << " long edges in " << i << " iterations." << endl;
     }
 
     void MeshProcessing::collapse_short_edges() {
@@ -231,7 +231,7 @@ namespace mesh_processing {
                     v1 = mesh_.vertex(*e_it, 1);
 
                     // Find the two other vertices
-                    auto find_third_vertex = [this,v0,v1,e_it](unsigned int face_index) -> Mesh::Vertex {
+                    auto find_third_vertex = [this, v0, v1, e_it](unsigned int face_index) -> Mesh::Vertex {
                         Mesh::Face face = mesh_.face(*e_it, face_index);
                         for (const auto &v : mesh_.vertices(face)) {
                             if (v != v0 && v != v1) {
@@ -254,7 +254,7 @@ namespace mesh_processing {
                     ve3 = compute_deviation(v3);
 
                     // compute loss before and after
-                    auto sqr = [](int i) -> int {return i*i;}; //convenience square function
+                    auto sqr = [](int i) -> int { return i * i; }; //convenience square function
                     ve_before = sqr(ve0) + sqr(ve1) + sqr(ve2) + sqr(ve3);
                     ve_after = sqr(--ve0) + sqr(--ve1) + sqr(++ve2) + sqr(++ve3); // v0, v1: -1 edge. v2, v3: +1 edge
 
@@ -280,7 +280,7 @@ namespace mesh_processing {
         int c = 0;
 
         Mesh::Vertex_property <Point> normals = mesh_.vertex_property<Point>("v:normal");
-        Mesh::Vertex_property <Point> update = mesh_.vertex_property<Point>("v:update", Point(0,0,0));
+        Mesh::Vertex_property <Point> update = mesh_.vertex_property<Point>("v:update");
 
         // smooth
         for (int iters = 0; iters < 10; ++iters) {
@@ -319,7 +319,6 @@ namespace mesh_processing {
                     mesh_.position(*v_it) += update[*v_it];
         }
         cout << "Moved " << c << " vertices." << endl;
-        mesh_.remove_vertex_property(update);
     }
 
     void MeshProcessing::calc_uniform_mean_curvature() {
@@ -344,7 +343,7 @@ namespace mesh_processing {
 
     void MeshProcessing::calc_mean_curvature() {
         Mesh::Vertex_property <Scalar> v_curvature =
-                mesh_.vertex_property<Scalar>("v:curvature", 0.0f);
+                mesh_.vertex_property<Scalar>("v:mean_curvature", 0.0f);
         Mesh::Edge_property <Scalar> e_weight =
                 mesh_.edge_property<Scalar>("e:weight", 0.0f);
         Mesh::Vertex_property <Scalar> v_weight =
