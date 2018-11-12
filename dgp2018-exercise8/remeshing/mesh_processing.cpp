@@ -339,8 +339,10 @@ namespace mesh_processing {
             }
 
             for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it)
-                if (!mesh_.is_boundary(*v_it))
+                if (!mesh_.is_boundary(*v_it)) {
+                    c++;
                     mesh_.position(*v_it) += update[*v_it];
+                }
         }
         cout << "Moved " << c << " vertices." << endl;
     }
