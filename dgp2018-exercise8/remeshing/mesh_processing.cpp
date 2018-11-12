@@ -29,9 +29,7 @@ namespace mesh_processing {
         load_mesh(filename);
     }
 
-    MeshProcessing::~MeshProcessing() {
-        // TODO
-    }
+    MeshProcessing::~MeshProcessing() = default;
 
     void MeshProcessing::remesh(const REMESHING_TYPE &remeshing_type,
                                 const int &num_iterations) {
@@ -43,6 +41,7 @@ namespace mesh_processing {
 
         // main remeshing loop
         for (int i = 0; i < num_iterations; ++i) {
+            cout << "----------- iteration " << i+1 << " out of " << num_iterations << " -----------" << endl;
             split_long_edges();
             collapse_short_edges();
             equalize_valences();
@@ -52,11 +51,7 @@ namespace mesh_processing {
 
     void MeshProcessing::calc_target_length(const REMESHING_TYPE &remeshing_type) {
         Mesh::Vertex_iterator v_it, v_end(mesh_.vertices_end());
-        Mesh::Vertex_around_vertex_circulator vv_c, vv_end;
         Scalar length;
-        Scalar mean_length;
-        Scalar H;
-        Scalar K;
 
         Mesh::Vertex_property <Scalar> curvature = mesh_.vertex_property<Scalar>("v:curvature", 0);
         Mesh::Vertex_property <Scalar> gauss_curvature = mesh_.vertex_property<Scalar>("v:gauss_curvature", 0);
@@ -82,8 +77,6 @@ namespace mesh_processing {
             Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
             Mesh::Vertex_property <Scalar> v_new_target_length = mesh_.vertex_property<Scalar>("v:vnewtargetlength", 0);
 
-
-
             // calculate desired length
             for (const auto &v : mesh_.vertices()) {
                 length = 1.0;
@@ -98,7 +91,7 @@ namespace mesh_processing {
             // smooth desired length
             for (int i = 0; i < 5; i++) {
                 for (const auto &v1 : mesh_.vertices()) {
-                    v_new_target_length[v1] = 0.;
+                    v_new_target_length[v1] = 0.f;
 
                     int n = 0; // number of neighbors
                     for (const auto &v2 : mesh_.vertices(v1)) {
@@ -110,7 +103,7 @@ namespace mesh_processing {
             }
 
             // calculate mean of v_new_target_length
-            Scalar mean_length(0.);
+            Scalar mean_length(0.f);
             unsigned int N = mesh_.n_vertices();
             for (const auto &v : mesh_.vertices()) {
                 mean_length += v_new_target_length[v] / N;
@@ -169,9 +162,8 @@ namespace mesh_processing {
         Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
         Mesh::Vertex v0, v1;
         Mesh::Halfedge h01, h10, h;
-        bool finished, b0, b1;
+        bool finished;
         int i, c = 0;
-        bool hcol01, hcol10;
 
         const double lower_ratio = 4. / 5;
 
@@ -203,17 +195,14 @@ namespace mesh_processing {
 
                     if (mesh_.edge_length(*e_it) < lower_ratio * desired_length) {
                         // only collapse edges not touching the boundary, except entirely in the boundary
+                        // the is_collapse_ok checks this for use, when looking into the code
+                        if (mesh_.is_collapse_ok(h01)) h = h01;
+                        else if (mesh_.is_collapse_ok(h10)) h = h10;
+                        else continue;
 
-                        if (mesh_.is_collapse_ok(h01)) {
-                            finished = false;
-                            mesh_.collapse(h01);
-                            c++;
-                        } else if (mesh_.is_collapse_ok(h10)) {
-                            finished = false;
-                            mesh_.collapse(h10);
-                            c++;
-                        }
-
+                        finished = false;
+                        mesh_.collapse(h);
+                        c++;
                     }
                 }
             }
@@ -229,8 +218,6 @@ namespace mesh_processing {
         Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
         Mesh::Vertex v0, v1, v2, v3;
         Mesh::Halfedge h;
-        int val0, val1, val2, val3;
-        int val_opt0, val_opt1, val_opt2, val_opt3;
         int ve0, ve1, ve2, ve3, ve_before, ve_after;
         bool finished;
         int i;
@@ -298,7 +285,6 @@ namespace mesh_processing {
     void MeshProcessing::tangential_relaxation() {
         Mesh::Vertex_iterator v_it, v_end(mesh_.vertices_end());
         Mesh::Vertex_around_vertex_circulator vv_c, vv_end;
-        int valence;
         Point u, n;
         Point laplace;
         int c = 0;
@@ -307,7 +293,7 @@ namespace mesh_processing {
         Mesh::Vertex_property <Point> update = mesh_.vertex_property<Point>("v:update");
 
         // smooth
-        for (int iters = 0; iters < 1; ++iters) { // TODO rechange to 10
+        for (int iters = 0; iters < 1; ++iters) {
             for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it) {
                 if (!mesh_.is_boundary(*v_it)) {
                     // ------------- IMPLEMENT HERE ---------
@@ -315,7 +301,7 @@ namespace mesh_processing {
                     //  Compute the tangential component of the laplacian vector and move the vertex
                     //  Store smoothed vertex location in the update vertex property.
                     // ------------- IMPLEMENT HERE ---------
-                    laplace = Point(0, 0, 0);
+                    laplace = Point(0.0);
                     for (const auto &v1 : mesh_.vertices(*v_it)) {
                         laplace += mesh_.position(v1) - mesh_.position(*v_it);
                     }
@@ -359,12 +345,10 @@ namespace mesh_processing {
         Point laplace(0.0);
         for (const auto &v : mesh_.vertices()) {
             laplace = 0;
-            int N = 0;
             for (const auto &v2 : mesh_.vertices(v)) {
                 laplace += mesh_.position(v2) - mesh_.position(v);
-                N++;
             }
-            v_unicurvature[v] = norm(laplace / N);
+            v_unicurvature[v] = norm(laplace / mesh_.valence(v));
         }
     }
 
@@ -505,7 +489,7 @@ namespace mesh_processing {
 
             } while (++vf_c != vf_end);
 
-            v_weight[v] = 0.5 / area;
+            v_weight[v] = static_cast<float>(0.5 / area);
         }
     }
 
