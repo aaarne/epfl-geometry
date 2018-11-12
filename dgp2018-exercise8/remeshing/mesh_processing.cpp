@@ -46,7 +46,7 @@ namespace mesh_processing {
             split_long_edges();
             collapse_short_edges();
             equalize_valences();
-            //tangential_relaxation();
+            tangential_relaxation();
         }
     }
 
@@ -182,6 +182,7 @@ namespace mesh_processing {
                     v1 = mesh_.vertex(*e_it, 1);
                     float desired_length = .5f * target_length[v0] + .5f * target_length[v1];
 
+                    // check if edge considerably too short
                     bool do_collapse = mesh_.edge_length(*e_it) < lower_ratio * desired_length;
 
                     // only collapse edges not touching the boundary, except entirely in the boundary
