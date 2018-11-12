@@ -46,7 +46,7 @@ namespace mesh_processing {
             split_long_edges();
             collapse_short_edges();
             equalize_valences();
-            tangential_relaxation();
+            //tangential_relaxation();
         }
     }
 
@@ -64,7 +64,7 @@ namespace mesh_processing {
         Mesh::Vertex_property <Scalar> target_new_length = mesh_.vertex_property<Scalar>("v:newlength", 0);
 
         // our helpers
-        Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
+            Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
         Mesh::Vertex_property <Scalar> v_new_target_length = mesh_.vertex_property<Scalar>("v:vnewtargetlength", 0);
 
         // user specified target length
@@ -185,7 +185,7 @@ namespace mesh_processing {
                     bool do_collapse = mesh_.edge_length(*e_it) < lower_ratio * desired_length;
 
                     // only collapse edges not touching the boundary, except entirely in the boundary
-                    do_collapse &= mesh_.is_boundary(v0) != mesh_.is_boundary(v1);
+                    do_collapse &= !mesh_.is_boundary(v0) || mesh_.is_boundary(v1);
 
                     h01 = mesh_.halfedge(*e_it, 0);
                     h10 = mesh_.halfedge(*e_it, 1);
