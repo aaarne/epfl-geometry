@@ -46,7 +46,7 @@ namespace mesh_processing {
             split_long_edges();
             collapse_short_edges();
             equalize_valences();
-            //tangential_relaxation();
+            tangential_relaxation();
         }
     }
 
@@ -63,9 +63,6 @@ namespace mesh_processing {
         Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
         Mesh::Vertex_property <Scalar> target_new_length = mesh_.vertex_property<Scalar>("v:newlength", 0);
 
-        // our helpers
-            Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
-        Mesh::Vertex_property <Scalar> v_new_target_length = mesh_.vertex_property<Scalar>("v:vnewtargetlength", 0);
 
         // user specified target length
         const float TARGET_LENGTH = 2.0;
@@ -75,6 +72,9 @@ namespace mesh_processing {
                 target_length[*v_it] = TARGET_LENGTH;
 
         } else if (remeshing_type == CURV) {
+            // our helpers
+            Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
+            Mesh::Vertex_property <Scalar> v_new_target_length = mesh_.vertex_property<Scalar>("v:vnewtargetlength", 0);
             // ------------- IMPLEMENT HERE ---------
             // Get the maximal curvature at each vertex (use the precomputed mean and gaussian curvature)
             // Calculate the desired edge length as the TARGET_LENGTH divided by the maximal curvature at each vertex, and assign it to the property target_length
@@ -118,6 +118,8 @@ namespace mesh_processing {
             for (const auto &v : mesh_.vertices()) {
                 target_new_length[v] = v_new_target_length[v] * (TARGET_LENGTH / mean_length);
             }
+            mesh_.remove_vertex_property(v_new_target_length);
+            mesh_.remove_vertex_property(max_curvature);
         }
     }
 
@@ -155,7 +157,7 @@ namespace mesh_processing {
     void MeshProcessing::collapse_short_edges() {
         Mesh::Edge_iterator e_it, e_end(mesh_.edges_end());
         Mesh::Vertex v0, v1;
-        Mesh::Halfedge h01, h10;
+        Mesh::Halfedge h01, h10, h;
         bool finished;
         int i, c = 0;
 
@@ -178,22 +180,29 @@ namespace mesh_processing {
                     //		Collapse the halfedge
                     // Leave the loop running until no collapse has been done (use the finished variable)
                     // ------------- IMPLEMENT HERE ---------
-                    v0 = mesh_.vertex(*e_it, 0);
-                    v1 = mesh_.vertex(*e_it, 1);
-                    float desired_length = .5f * target_length[v0] + .5f * target_length[v1];
-
-                    bool do_collapse = mesh_.edge_length(*e_it) < lower_ratio * desired_length;
-
-                    // only collapse edges not touching the boundary, except entirely in the boundary
-                    do_collapse &= !mesh_.is_boundary(v0) || mesh_.is_boundary(v1);
-
                     h01 = mesh_.halfedge(*e_it, 0);
                     h10 = mesh_.halfedge(*e_it, 1);
-                    do_collapse &= mesh_.is_collapse_ok(h01) || mesh_.is_collapse_ok(h10);
 
-                    if (do_collapse) {
+                    v0 = mesh_.to_vertex(h01);
+                    v1 = mesh_.to_vertex(h10);
+                    float desired_length = .5f * target_length[v0] + .5f * target_length[v1];
+
+                    if (mesh_.edge_length(*e_it) < lower_ratio * desired_length) {
+                        // only collapse edges not touching the boundary, except entirely in the boundary
+
+
+                        if (mesh_.is_boundary(v0)) {
+                            h = h01;
+                        } else if (mesh_.is_boundary(v1)) {
+                            h = h10;
+                        } else {
+                            if (mesh_.is_collapse_ok(h01)) h = h01;
+                            else if (mesh_.is_collapse_ok(h10)) h = h10;
+                            else continue;
+                        }
+
                         finished = false;
-                        mesh_.collapse(mesh_.is_collapse_ok(h01) ? h01 : h10);
+                        mesh_.collapse(h);
                         c++;
                     }
                 }
@@ -274,7 +283,6 @@ namespace mesh_processing {
 
     void MeshProcessing::tangential_relaxation() {
         Mesh::Vertex_iterator v_it, v_end(mesh_.vertices_end());
-        int valence;
         Point u, n;
         Point laplace;
         int c = 0;
