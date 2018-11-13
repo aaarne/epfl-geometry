@@ -58,10 +58,9 @@ namespace mesh_processing {
         Mesh::Vertex_iterator v_it, v_end(mesh_.vertices_end());
         Scalar length;
 
-        Mesh::Vertex_property <Scalar> curvature = mesh_.vertex_property<Scalar>("v:curvature", 0);
-        Mesh::Vertex_property <Scalar> gauss_curvature = mesh_.vertex_property<Scalar>("v:gauss_curvature", 0);
         Mesh::Vertex_property <Scalar> target_length = mesh_.vertex_property<Scalar>("v:length", 0);
         Mesh::Vertex_property <Scalar> target_new_length = mesh_.vertex_property<Scalar>("v:newlength", 0);
+        Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:max_curvature", 0);
 
         // user specified target length
         const float TARGET_LENGTH = 2.0;
@@ -82,11 +81,7 @@ namespace mesh_processing {
             for (const auto &v : mesh_.vertices()) {
                 length = TARGET_LENGTH;
                 if (!mesh_.is_boundary(v)) {
-                    float H = curvature[v];
-                    float K = gauss_curvature[v];
-                    float max_curvature = H + sqrtf(H * H - abs(K));
-                    assert(max_curvature == max_curvature);
-                    length = TARGET_LENGTH / max_curvature;
+                    length = TARGET_LENGTH / max_curvature[v];
                 }
                 target_length[v] = length;
             }
@@ -432,7 +427,11 @@ namespace mesh_processing {
         for (const auto &v : mesh_.vertices()) {
             float H = v_curvature[v];
             float K = v_gauss_curvature[v];
-            v_max_curvature[v] = H + sqrtf(H * H - K);
+            float k_max = H + sqrtf(H * H - K);
+            if (k_max != k_max) { // we may get NaN --> use mean curvature as fallback
+                k_max = H;
+            }
+            v_max_curvature[v] = k_max;
         }
     }
 
@@ -650,7 +649,7 @@ namespace mesh_processing {
 
     void MeshProcessing::color_coding(Mesh::Vertex_property <Scalar> prop, Mesh *mesh,
                                       Mesh::Vertex_property <Color> color_prop, Scalar min_value,
-                                      Scalar max_value, int bound) {
+                                      Scalar max_value, int bound, bool use_nan_colors) {
         // Get the value array
         std::vector<Scalar> values = prop.vector();
 
@@ -665,13 +664,25 @@ namespace mesh_processing {
 
         // map values to colors
         for (auto v : mesh->vertices()) {
-            set_color(v, value_to_color(prop[v], min_value, max_value), color_prop);
+            if (use_nan_colors)
+                set_color(v, nan_to_color(prop[v], min_value, max_value), color_prop);
+            else
+                set_color(v, value_to_color(prop[v], min_value, max_value), color_prop);
         }
     }
 
     void MeshProcessing::set_color(Mesh::Vertex v, const Color &col,
                                    Mesh::Vertex_property <Color> color_prop) {
         color_prop[v] = col;
+    }
+
+    Color MeshProcessing::nan_to_color(surface_mesh::Scalar value, surface_mesh::Scalar min_value,
+                                       surface_mesh::Scalar max_value) {
+        if (value != value) {
+            return Color(1, 0, 0);
+        } else {
+            return Color(0, 1, 0);
+        }
     }
 
     Color MeshProcessing::value_to_color(Scalar value, Scalar min_value, Scalar max_value) {
