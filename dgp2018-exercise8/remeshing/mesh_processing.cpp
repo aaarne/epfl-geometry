@@ -318,7 +318,7 @@ namespace mesh_processing {
                     u = Point(proj(0), proj(1), proj(2));
 
                     // Set update to the projection
-                    update[*v_it] = .1 * u;
+                    update[*v_it] = .1*u;
                 }
             }
 

@@ -402,6 +402,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
 	b->setCallback([this]() {
 		this->mesh_->tangential_relaxation();
 		this->mesh_->compute_mesh_properties();
+		this->mesh_->calc_target_length(this->remeshing_type);
 		this->refresh_mesh();
 	});
 
