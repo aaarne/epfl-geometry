@@ -15,11 +15,6 @@
 #include <cmath>
 #include <Eigen/Geometry>
 
-/*
- * TODO: the curvature dependent remeshing doesn't work?
- * --> I have the impression that just a finer mesh is used, independent of curvature
- */
-
 namespace mesh_processing {
 
     using surface_mesh::Point;
