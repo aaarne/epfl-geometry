@@ -86,19 +86,18 @@ namespace mesh_processing {
                 target_length[v] = length;
             }
 
-            // smooth desired length
-//            for (int i = 0; i < 5; i++) {
-//                for (const auto &v1 : mesh_.vertices()) {
-//                    v_new_target_length[v1] = 0.f;
-//
-//                    int n = 0; // number of neighbors
-//                    for (const auto &v2 : mesh_.vertices(v1)) {
-//                        v_new_target_length[v1] += target_length[v2] - target_length[v1];
-//                        n += 1;
-//                    }
-//                    v_new_target_length[v1] /= n;
-//                }
-//            }
+            //uniform smoothing of desired length
+            for (int i = 0; i < 5; i++) {
+                for (const auto &vi : mesh_.vertices()) {
+                    float local_target_length_avg = 0.f;
+                    for (const auto &vj : mesh_.vertices(vi)) {
+                        local_target_length_avg+= target_length[vj] - target_length[vi];
+                    }
+                    local_target_length_avg /= mesh_.valence(vi);
+                    target_length[vi] += local_target_length_avg;
+                    assert(target_length[vi] > 0);
+                }
+            }
 
             // calculate mean of v_new_target_length
             float mean_length = 0;
