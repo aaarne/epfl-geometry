@@ -25,7 +25,7 @@ enum REMESHING_TYPE : int { AVERAGE = 0, CURV = 1 };
 class MeshProcessing {
 
 public:
-    MeshProcessing(const string& filename);
+    explicit MeshProcessing(const string& filename);
     ~MeshProcessing();
 
     const surface_mesh::Point get_mesh_center() { return mesh_center_; }
@@ -37,6 +37,7 @@ public:
     const Eigen::MatrixXf* get_colors_unicurvature() { return &color_unicurvature_; }
     const Eigen::MatrixXf* get_colors_gaussian_curv() { return &color_gaussian_curv_; }
     const Eigen::MatrixXf* get_color_curvature() { return &color_curvature_; }
+    const Eigen::MatrixXf* get_color_max_curv() {return &color_max_curv_; }
     const unsigned int get_number_of_face() { return mesh_.n_faces(); }
 
 
@@ -53,6 +54,7 @@ public:
     void calc_mean_curvature();
     void calc_uniform_mean_curvature();
     void calc_gauss_curvature();
+    void calc_max_curvature();
 
 private:
     void calc_weights();
@@ -72,6 +74,7 @@ private:
     Eigen::MatrixXf color_unicurvature_;
     Eigen::MatrixXf color_gaussian_curv_;
     Eigen::MatrixXf color_curvature_;
+    Eigen::MatrixXf color_max_curv_;
 
     void color_coding(Mesh::Vertex_property<surface_mesh::Scalar> prop,
                       Mesh *mesh,
@@ -83,7 +86,8 @@ private:
     surface_mesh::Color value_to_color(surface_mesh::Scalar value,
                                        surface_mesh::Scalar min_value,
                                        surface_mesh::Scalar max_value);
-    };
+
+};
 
 }
 

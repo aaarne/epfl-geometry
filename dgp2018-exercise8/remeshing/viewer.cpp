@@ -154,6 +154,7 @@ void Viewer::initShaders() {
                     "in vec3 unicruvature_color;\n"
                     "in vec3 curvature_color;\n"
                     "in vec3 gaussian_curv_color;\n"
+                    "in vec3 max_curv_color;\n"
                     "in vec3 normal;\n"
 
                     "out vec3 fcolor;\n"
@@ -172,6 +173,8 @@ void Viewer::initShaders() {
                     "        fcolor = curvature_color;\n"
                     "    } else if (color_mode == 4) {\n"
                     "        fcolor = gaussian_curv_color;\n"
+                    "    } else if (color_mode == 5) {\n"
+                    "        fcolor = max_curv_color;\n"
                     "    } else {\n"
                     "        fcolor = intensity;\n"
                     "    }\n"
@@ -353,6 +356,11 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     b->setCallback([this]() {
         this->curvature_type = GAUSS;
     });
+    b = new Button(popup, "Max Curvature");
+    b->setFlags(Button::RadioButton);
+    b->setCallback([this]() {
+        this->curvature_type = MAX;
+    });
 
     new Label(window_, "Remeshing Type", "sans-bold");
     vector<string> remeshing_type = {"Average", "Curvature"};
@@ -401,6 +409,7 @@ void Viewer::refresh_mesh() {
     shader_.uploadAttrib("unicruvature_color", *(mesh_->get_colors_unicurvature()));
     shader_.uploadAttrib("curvature_color", *(mesh_->get_color_curvature()));
     shader_.uploadAttrib("gaussian_curv_color", *(mesh_->get_colors_gaussian_curv()));
+    shader_.uploadAttrib("max_curv_color", *(mesh_->get_color_max_curv()));
     shader_.uploadAttrib("normal", *(mesh_->get_normals()));
     shader_.setUniform("color_mode", int(color_mode));
     shader_.setUniform("intensity", Vector3f(0.98, 0.59, 0.04));

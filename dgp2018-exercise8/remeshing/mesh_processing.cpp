@@ -46,7 +46,7 @@ namespace mesh_processing {
 
         // main remeshing loop
         for (int i = 0; i < num_iterations; ++i) {
-            cout << "----------- iteration " << i+1 << " out of " << num_iterations << " -----------" << endl;
+            cout << "----------- iteration " << i + 1 << " out of " << num_iterations << " -----------" << endl;
             split_long_edges();
             collapse_short_edges();
             equalize_valences();
@@ -78,48 +78,44 @@ namespace mesh_processing {
             // Rescale the property target_new_length such that it's mean equals the user specified TARGET_LENGTH
             // ------------- IMPLEMENT HERE ---------
 
-            // our helper properties
-            Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:maxcurvature", 0);
-            Mesh::Vertex_property <Scalar> v_new_target_length = mesh_.vertex_property<Scalar>("v:vnewtargetlength", 0);
-
             // calculate desired length
             for (const auto &v : mesh_.vertices()) {
-                length = 1.0;
+                length = TARGET_LENGTH;
                 if (!mesh_.is_boundary(v)) {
-                    max_curvature[v] =
-                            curvature[v] + sqrtf(curvature[v] * curvature[v] - gauss_curvature[v]);
-                    target_length[v] = TARGET_LENGTH / max_curvature[v];
+                    float H = curvature[v];
+                    float K = gauss_curvature[v];
+                    float max_curvature = H + sqrtf(H * H - abs(K));
+                    assert(max_curvature == max_curvature);
+                    length = TARGET_LENGTH / max_curvature;
                 }
                 target_length[v] = length;
             }
 
             // smooth desired length
-            for (int i = 0; i < 5; i++) {
-                for (const auto &v1 : mesh_.vertices()) {
-                    v_new_target_length[v1] = 0.f;
-
-                    int n = 0; // number of neighbors
-                    for (const auto &v2 : mesh_.vertices(v1)) {
-                        v_new_target_length[v1] += target_length[v2] - target_length[v1];
-                        n += 1;
-                    }
-                    v_new_target_length[v1] /= n;
-                }
-            }
+//            for (int i = 0; i < 5; i++) {
+//                for (const auto &v1 : mesh_.vertices()) {
+//                    v_new_target_length[v1] = 0.f;
+//
+//                    int n = 0; // number of neighbors
+//                    for (const auto &v2 : mesh_.vertices(v1)) {
+//                        v_new_target_length[v1] += target_length[v2] - target_length[v1];
+//                        n += 1;
+//                    }
+//                    v_new_target_length[v1] /= n;
+//                }
+//            }
 
             // calculate mean of v_new_target_length
-            Scalar mean_length(0.f);
-            unsigned int N = mesh_.n_vertices();
+            float mean_length = 0;
             for (const auto &v : mesh_.vertices()) {
-                mean_length += v_new_target_length[v] / N;
+                mean_length += target_length[v];
             }
+            mean_length /= mesh_.n_vertices();
 
             // rescale desired length
             for (const auto &v : mesh_.vertices()) {
-                target_new_length[v] = v_new_target_length[v] * (TARGET_LENGTH / mean_length);
+                target_length[v] *= TARGET_LENGTH / mean_length;
             }
-            mesh_.remove_vertex_property(v_new_target_length);
-            mesh_.remove_vertex_property(max_curvature);
         }
     }
 
@@ -325,7 +321,7 @@ namespace mesh_processing {
                     u = Point(proj(0), proj(1), proj(2));
 
                     // Set update to the projection
-                    update[*v_it] = .1*u;
+                    update[*v_it] = .1 * u;
                 }
             }
 
@@ -422,6 +418,21 @@ namespace mesh_processing {
             }
 
             v_gauss_curvature[v] = float(2 * M_PI - angles) * 2.0f * v_weight[v];
+        }
+    }
+
+    void MeshProcessing::calc_max_curvature() {
+        Mesh::Vertex_property <Scalar> v_gauss_curvature =
+                mesh_.vertex_property<Scalar>("v:gauss_curvature", 0.0f);
+        Mesh::Vertex_property <Scalar> v_curvature =
+                mesh_.vertex_property<Scalar>("v:curvature", 0.0f);
+        Mesh::Vertex_property <Scalar> v_max_curvature =
+                mesh_.vertex_property<Scalar>("v:max_curvature", 0.0f);
+
+        for (const auto &v : mesh_.vertices()) {
+            float H = v_curvature[v];
+            float K = v_gauss_curvature[v];
+            v_max_curvature[v] = H + sqrtf(H * H - K);
         }
     }
 
@@ -547,6 +558,9 @@ namespace mesh_processing {
         Mesh::Vertex_property <Color> v_color_gaussian_curv =
                 mesh_.vertex_property<Color>("v:color_gaussian_curv",
                                              Color(1.0f, 1.0f, 1.0f));
+        Mesh::Vertex_property <Color> v_color_max_curv =
+                mesh_.vertex_property<Color>("v:color_max_curv",
+                                             Color(1.f, 1.f, 1.f));
 
         Mesh::Vertex_property <Scalar> vertex_valence =
                 mesh_.vertex_property<Scalar>("v:valence", 0.0f);
@@ -560,16 +574,20 @@ namespace mesh_processing {
                 mesh_.vertex_property<Scalar>("v:curvature", 0.0f);
         Mesh::Vertex_property <Scalar> v_gauss_curvature =
                 mesh_.vertex_property<Scalar>("v:gauss_curvature", 0.0f);
+        Mesh::Vertex_property <Scalar> v_max_curvature =
+                mesh_.vertex_property<Scalar>("v:max_curvature", 0.0f);
 
         calc_weights();
         calc_uniform_mean_curvature();
         calc_mean_curvature();
         calc_gauss_curvature();
+        calc_max_curvature();
         color_coding(vertex_valence, &mesh_, v_color_valence, 3 /* min */,
                      8 /* max */);
         color_coding(v_unicurvature, &mesh_, v_color_unicurvature);
         color_coding(v_curvature, &mesh_, v_color_curvature);
         color_coding(v_gauss_curvature, &mesh_, v_color_gaussian_curv);
+        color_coding(v_max_curvature, &mesh_, v_color_max_curv);
 
         // get the mesh attributes and upload them to the GPU
         int j = 0;
@@ -581,6 +599,7 @@ namespace mesh_processing {
         color_unicurvature_ = Eigen::MatrixXf(3, n_vertices);
         color_curvature_ = Eigen::MatrixXf(3, n_vertices);
         color_gaussian_curv_ = Eigen::MatrixXf(3, n_vertices);
+        color_max_curv_ = Eigen::MatrixXf(3, n_vertices);
         normals_ = Eigen::MatrixXf(3, n_vertices);
         points_ = Eigen::MatrixXf(3, n_vertices);
         indices_ = MatrixXu(3, mesh_.n_faces());
@@ -621,6 +640,10 @@ namespace mesh_processing {
             color_gaussian_curv_.col(j) << v_color_gaussian_curv[v].x,
                     v_color_gaussian_curv[v].y,
                     v_color_gaussian_curv[v].z;
+
+            color_max_curv_.col(j) << v_color_max_curv[v].x,
+                    v_color_max_curv[v].y,
+                    v_color_max_curv[v].z;
             ++j;
         }
     }
