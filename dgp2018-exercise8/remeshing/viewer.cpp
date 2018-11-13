@@ -155,6 +155,7 @@ void Viewer::initShaders() {
                     "in vec3 curvature_color;\n"
                     "in vec3 gaussian_curv_color;\n"
                     "in vec3 max_curv_color;\n"
+                    "in vec3 target_length_color;\n"
                     "in vec3 normal;\n"
 
                     "out vec3 fcolor;\n"
@@ -175,6 +176,8 @@ void Viewer::initShaders() {
                     "        fcolor = gaussian_curv_color;\n"
                     "    } else if (color_mode == 5) {\n"
                     "        fcolor = max_curv_color;\n"
+                    "    } else if (color_mode == 6) {\n"
+                    "        fcolor = target_length_color;\n"
                     "    } else {\n"
                     "        fcolor = intensity;\n"
                     "    }\n"
@@ -282,6 +285,8 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     Popup *popup = popupBtn->popup();
     popup->setLayout(new GroupLayout());
 
+    Button *valence_btn, *target_length_btn;
+
     Button* b = new Button(popup, "Bunny");
     b->setCallback([this]() {
         mesh_->load_mesh("../data/bunny.off");
@@ -322,9 +327,9 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
         this->normals_ =! this->normals_;
     });
 
-    b = new Button(window_, "Valence");
-    b->setFlags(Button::ToggleButton);
-    b->setChangeCallback([this](bool valence) {
+    valence_btn = new Button(window_, "Valence");
+    valence_btn->setFlags(Button::ToggleButton);
+    valence_btn->setChangeCallback([this](bool valence) {
         if (valence) {
             this->color_mode = VALENCE;
         } else {
@@ -362,18 +367,34 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
         this->curvature_type = MAX;
     });
 
+    target_length_btn = new Button(window_, "Target Length");
+    target_length_btn->setFlags(Button::ToggleButton);
+    target_length_btn->setChangeCallback([this](bool do_show) {
+        if (do_show) {
+            this->mesh_->calc_target_length(remeshing_type);
+            this->refresh_mesh(); //upload the computed target length to GPU
+            this->color_mode = TARGET_LENGTH;
+        } else {
+            this->color_mode = NORMAL;
+        }
+    });
+
+
     new Label(window_, "Remeshing Type", "sans-bold");
     vector<string> remeshing_type = {"Average", "Curvature"};
     ComboBox *c = new ComboBox(window_, remeshing_type);
-    c->setCallback([this](int remeshing_type) {
+    c->setCallback([this, &target_length_btn](int remeshing_type) {
         this->remeshing_type = static_cast<mesh_processing::REMESHING_TYPE>
                                                                 (remeshing_type);
+        this->mesh_->calc_target_length(this->remeshing_type);
+        this->refresh_mesh();
     });
 
     b = new Button(window_, "Remeshing");
     b->setCallback([this]() {
         this->mesh_->remesh(this->remeshing_type, 10);
         this->mesh_->compute_mesh_properties();
+        this->mesh_->calc_target_length(this->remeshing_type);
         this->refresh_mesh();
     });
 
@@ -410,6 +431,7 @@ void Viewer::refresh_mesh() {
     shader_.uploadAttrib("curvature_color", *(mesh_->get_color_curvature()));
     shader_.uploadAttrib("gaussian_curv_color", *(mesh_->get_colors_gaussian_curv()));
     shader_.uploadAttrib("max_curv_color", *(mesh_->get_color_max_curv()));
+    shader_.uploadAttrib("target_length_color", *(mesh_->get_color_target_length()));
     shader_.uploadAttrib("normal", *(mesh_->get_normals()));
     shader_.setUniform("color_mode", int(color_mode));
     shader_.setUniform("intensity", Vector3f(0.98, 0.59, 0.04));

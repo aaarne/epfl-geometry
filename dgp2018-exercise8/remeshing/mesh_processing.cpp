@@ -112,6 +112,14 @@ namespace mesh_processing {
                 target_length[v] *= TARGET_LENGTH / mean_length;
             }
         }
+
+        // Compute color coding of target length (for debugging and visualization)
+        Mesh::Vertex_property<Color> c = mesh_.get_vertex_property<Color>("v:color_target_length");
+        color_coding(target_length, &mesh_, c);
+        int j = 0;
+        for (const auto &v : mesh_.vertices()) {
+            color_target_length_.col(j++) << c[v].x, c[v].y, c[v].z;
+        }
     }
 
     void MeshProcessing::split_long_edges() {
@@ -561,6 +569,10 @@ namespace mesh_processing {
                 mesh_.vertex_property<Color>("v:color_max_curv",
                                              Color(1.f, 1.f, 1.f));
 
+        Mesh::Vertex_property <Color> v_color_target_length =
+                mesh_.vertex_property<Color>("v:color_target_length",
+                                             Color(1.f, 1.f, 1.f));
+
         Mesh::Vertex_property <Scalar> vertex_valence =
                 mesh_.vertex_property<Scalar>("v:valence", 0.0f);
         for (auto v : mesh_.vertices()) {
@@ -602,6 +614,7 @@ namespace mesh_processing {
         normals_ = Eigen::MatrixXf(3, n_vertices);
         points_ = Eigen::MatrixXf(3, n_vertices);
         indices_ = MatrixXu(3, mesh_.n_faces());
+        color_target_length_ = Eigen::MatrixXf(3, n_vertices);
 
         for (auto f : mesh_.faces()) {
             std::vector<float> vv(3);

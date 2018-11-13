@@ -51,6 +51,8 @@ namespace mesh_processing {
 
         const Eigen::MatrixXf *get_color_max_curv() { return &color_max_curv_; }
 
+        const Eigen::MatrixXf *get_color_target_length() { return &color_target_length_; }
+
         const unsigned int get_number_of_face() { return mesh_.n_faces(); }
 
 
@@ -99,6 +101,7 @@ namespace mesh_processing {
         Eigen::MatrixXf color_gaussian_curv_;
         Eigen::MatrixXf color_curvature_;
         Eigen::MatrixXf color_max_curv_;
+        Eigen::MatrixXf color_target_length_;
 
         void color_coding(Mesh::Vertex_property <surface_mesh::Scalar> prop,
                           Mesh *mesh,

@@ -97,7 +97,7 @@ private:
 
     mesh_processing::MeshProcessing* mesh_;
 
-    enum COLOR_MODE : int { NORMAL = 0, VALENCE = 1, CURVATURE = 2 };
+    enum COLOR_MODE : int { NORMAL = 0, VALENCE = 1, CURVATURE = 2, TARGET_LENGTH = 6 };
     enum CURVATURE_TYPE : int { UNIMEAN = 2, LAPLACEBELTRAMI = 3, GAUSS = 4, MAX = 5 };
 
     // Boolean for the viewer
