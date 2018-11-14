@@ -28,63 +28,38 @@ namespace mesh_processing {
 
     public:
         explicit MeshProcessing(const string &filename);
-
         ~MeshProcessing();
 
         const surface_mesh::Point get_mesh_center() { return mesh_center_; }
-
         const float get_dist_max() { return dist_max_; }
-
         const Eigen::MatrixXf *get_points() { return &points_; }
-
         const MatrixXu *get_indices() { return &indices_; }
-
         const Eigen::MatrixXf *get_normals() { return &normals_; }
-
         const Eigen::MatrixXf *get_colors_valence() { return &color_valence_; }
-
         const Eigen::MatrixXf *get_colors_unicurvature() { return &color_unicurvature_; }
-
         const Eigen::MatrixXf *get_colors_gaussian_curv() { return &color_gaussian_curv_; }
-
         const Eigen::MatrixXf *get_color_curvature() { return &color_curvature_; }
-
         const Eigen::MatrixXf *get_color_max_curv() { return &color_max_curv_; }
-
         const Eigen::MatrixXf *get_color_target_length() { return &color_target_length_; }
-
         const unsigned int get_number_of_face() { return mesh_.n_faces(); }
 
 
         void remesh(const REMESHING_TYPE &remeshing_type, const int &num_iterations);
-
         void calc_target_length(const REMESHING_TYPE &remeshing_type);
-
         void split_long_edges();
-
         void collapse_short_edges();
-
         void equalize_valences();
-
         void tangential_relaxation();
-
         void load_mesh(const string &filename);
-
         void compute_mesh_properties();
-
         void calc_mean_curvature();
-
         void calc_uniform_mean_curvature();
-
         void calc_gauss_curvature();
-
         void calc_max_curvature();
 
     private:
         void calc_weights();
-
         void calc_edges_weights();
-
         void calc_vertices_weights();
 
     private:
@@ -107,16 +82,12 @@ namespace mesh_processing {
                           Mesh *mesh,
                           Mesh::Vertex_property <surface_mesh::Color> color_prop,
                           surface_mesh::Scalar min_value = 0.0,
-                          surface_mesh::Scalar max_value = 0.0, int bound = 20, bool use_nan_colors = false);
+                          surface_mesh::Scalar max_value = 0.0, int bound = 20);
 
         void set_color(Mesh::Vertex v, const surface_mesh::Color &col,
                        Mesh::Vertex_property <surface_mesh::Color> color_prop);
 
         surface_mesh::Color value_to_color(surface_mesh::Scalar value,
-                                           surface_mesh::Scalar min_value,
-                                           surface_mesh::Scalar max_value);
-
-        surface_mesh::Color nan_to_color(surface_mesh::Scalar value,
                                            surface_mesh::Scalar min_value,
                                            surface_mesh::Scalar max_value);
 
