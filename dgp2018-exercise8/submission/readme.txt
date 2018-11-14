@@ -26,8 +26,8 @@ Attached Screenshots:
 	- max_curvature_nan.png: shows the regions where we initially got NaN for the max_curvature
 
 Average Remeshing:
-Q:
-Does this algorithm lead to a stationary solution after finite number of steps, i.e. does the mesh not change anymore when more remeshing steps are applied?
+
+Q: Does this algorithm lead to a stationary solution after finite number of steps, i.e. does the mesh not change anymore when more remeshing steps are applied?
 
 Short Answer: No.
 
