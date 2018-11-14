@@ -14,11 +14,16 @@ Tangential Smoothing
 Adaptive Remeshing
 - we added a new function in mesh_processing.cpp: calc_max_curvature()
 	- called in compute_mesh_properties, it is stored as a vertex property
-	- we encountered rare (5 out of 10000 vertices on Max Planck) problems with negative 
-	  squareroots when calculating the max curvature from mean curvature H and Gaussian 
-	  curvature K, i.e. in the formula
+	- we encountered rare (5 out of 10000 vertices on Max Planck) problems with negative arguments under the
+	  squareroots when calculating the max curvature based on mean curvature H and Gaussian curvature K, i.e. in the formula
 	  k_max = H + sqrt(H^2 - K)
-	  In this case we proceed by setting it just to the mean_curvature, i.e. k_max = H
+	  In this case we proceed by setting it to the mean_curvature as fallback, i.e. we set k_max = H if H^2 - K < 0
+
+Attached Screenshots:
+	- remeshing_average.png: Result using average remeshing
+	- remeshing_curvature_adaptive.png: Result using adaptive remeshing
+	- target_length.png: Showing the color coded target length for curvature adaptive remeshing
+	- max_curvature_nan.png: shows the regions where we initially got NaN for the max_curvature
 
 Average Remeshing:
 Q:
