@@ -4,9 +4,12 @@ Group 7: Arne Sachtler, Jannik Reichert, Niklas Schmitz
 
 As usual, codes are implemented as described on the exercise sheet, details are in the comments.
 A few notes:
+- added: some print statementsto keep track of amount of change per iteration
+- added: in the visualization the is now a curvature > max_curvature button
 
 Tangential Smoothing
-- 
+- When calculating the laplacian projection onto the tangent plane, we use an Eigen 
+  hyperplane to improve readability
 
 Adaptive Remeshing
 - we added a new function in mesh_processing.cpp: calc_max_curvature()
@@ -19,11 +22,6 @@ Adaptive Remeshing
 
 
 ===================================================================
-- kommentare erklaeren code
-- note that moved computation of the curvature to own method in order to debug the max curvature
-- When calculating the laplacian projection onto the tangent plane, we use an Eigen hyperplane to improve readability
-- added shader for target length and max curvature
-- if max curvature calculation fails with neg sqrt, we set it to H
 
 Average Remeshing:
 Q:
