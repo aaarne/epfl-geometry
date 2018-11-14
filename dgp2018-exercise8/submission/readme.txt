@@ -40,7 +40,7 @@ fifth the target length. Let us show the non-convergence with an example: Consid
 The edge will be split as 1.5 > 1.333 resulting in a new vertex and two edges of length 0.75. As 0.75 < 0.8 = 4/5 the new vertex will be collapsed and we get back
 the edge of length 1.5. This process continues forever and the solution is therefore periodic and non-convergent. Note that this argument assumes the non-existence of 
 edge flip and tangential relaxation, but it gives a first intuition of why the solution is non-stationary.
-2. We do not change the boundary vertices. Note that all operations except the collapsing keep the sum of valence constant. Now also note that the collapsing action 
+2. Note that all operations except the collapsing keep the sum of valence constant. Now also note that the collapsing action 
 reduces the sum of valence by a multiple of two. We therefore cannot converge to a point of equally distributed valence (as in the football case) and the edge flip 
 operation will move point of high or low valence over the mesh without convergence.
 
