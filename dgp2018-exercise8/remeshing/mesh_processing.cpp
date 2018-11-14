@@ -313,7 +313,6 @@ namespace mesh_processing {
 
     void MeshProcessing::tangential_relaxation() {
         Mesh::Vertex_iterator v_it, v_end(mesh_.vertices_end());
-        Mesh::Vertex_around_vertex_circulator vv_c, vv_end;
         Point u, n;
         Point laplace;
         int c = 0;
@@ -349,7 +348,7 @@ namespace mesh_processing {
                     u = Point(proj(0), proj(1), proj(2));
 
                     // Set update to the projection
-                    update[*v_it] = .1 * u;
+                    update[*v_it] = u;
                 }
             }
 

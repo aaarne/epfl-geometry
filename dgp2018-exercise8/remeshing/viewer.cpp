@@ -371,7 +371,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
     target_length_btn->setFlags(Button::ToggleButton);
     target_length_btn->setChangeCallback([this](bool do_show) {
         if (do_show) {
-            this->mesh_->calc_target_length(remeshing_type);
+            this->mesh_->calc_target_length(this->remeshing_type);
             this->refresh_mesh(); //upload the computed target length to GPU
             this->color_mode = TARGET_LENGTH;
         } else {
