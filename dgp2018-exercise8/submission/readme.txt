@@ -1,6 +1,7 @@
 Exercise 8: Remeshing
 
 Group 7: Arne Sachtler, Jannik Reichert, Niklas Schmitz
+uniformly distributed workload
 
 As usual, codes are implemented as described on the exercise sheet, details are in the comments.
 A few notes:
@@ -24,6 +25,12 @@ Attached Screenshots:
 	- remeshing_curvature_adaptive.png: Result using adaptive remeshing
 	- target_length.png: Showing the color coded target length for curvature adaptive remeshing
 	- max_curvature_nan.png: shows the regions where we initially got NaN for the max_curvature
+
+Attached Files:
+	- mesh_processing.cpp, mesh_processing.h
+	- viewer.cpp, viewer.h
+This time we attached the mesh_processing and the viewer class. We added a button to the GUI and therefore had to adjust the viewer class.
+Additionally, we add the private compute_max_curvature method to the MeshProcessing class.
 
 Average Remeshing:
 

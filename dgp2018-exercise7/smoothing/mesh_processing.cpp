@@ -36,6 +36,8 @@ namespace mesh_processing {
 
         Point laplacian;
 
+        auto updated_position = mesh_.vertex_property<Point>("v:updated_pos", Point(0.0));
+
         for (unsigned int iter = 0; iter < iterations; ++iter) {
             // ------------- IMPLEMENT HERE ---------
             // For each non-boundary vertex, update its position according to the uniform Laplacian operator
@@ -53,15 +55,22 @@ namespace mesh_processing {
                 laplacian /= N;
 
                 // update vertex position
-                mesh_.position(v) += rate * laplacian;
+                updated_position[v] = mesh_.position(v) + rate * laplacian;
             }
         }
+
+        for (const auto &v : mesh_.vertices()) {
+            mesh_.position(v) = updated_position[v];
+        }
+
+        mesh_.remove_vertex_property(updated_position);
     }
 
 // ======================================================================
 // EXERCISE 1.2
 // ========================================================================
     void MeshProcessing::smooth(const unsigned int iterations) {
+        auto updated_position = mesh_.vertex_property<Point>("v:updated_pos", Point(0.0));
         const double rate = 0.5;
 
         Point laplacian_weighted;
@@ -91,9 +100,15 @@ namespace mesh_processing {
                 laplacian_weighted /= acc;
 
                 // update vertex position
-                mesh_.position(v) += rate * laplacian_weighted;
+                updated_position[v] = mesh_.position(v) + rate * laplacian_weighted;
             }
         }
+
+        for (const auto &v : mesh_.vertices()) {
+            mesh_.position(v) = updated_position[v];
+        }
+
+        mesh_.remove_vertex_property(updated_position);
     }
 
 // ======================================================================
