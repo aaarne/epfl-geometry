@@ -39,13 +39,30 @@ void MeshProcessing::harmonic_function(const std::vector<size_t> & constraint_in
 	Eigen::MatrixXd rhs(Eigen::MatrixXd::Zero(n, 1));
 	std::vector< Eigen::Triplet<double> > triplets_L;
 
+	assert(constraint_indices.size() == 2);
+
 	for (int i = 0; i < n; ++i) {
 
 		// ------------- IMPLEMENT HERE ---------
 		// Set up Laplace-Beltrami matrix of the mesh
 		// For the vertices for which the constraints are added, replace the corresponding row of the system with the constraint
 		// ------------- IMPLEMENT HERE ---------
-		
+		if (std::find(constraint_indices.begin(), constraint_indices.end(), i) != constraint_indices.end()) {
+		    triplets_L.emplace_back(i, i, 1);
+		    if (constraint_indices[1] == i) {
+		        rhs(i) = 1;
+		    }
+		} else { // no constraint on i
+		    auto v = Mesh::Vertex(i);
+
+		    double sum = 0;
+		    for (const auto &h : mesh_.halfedges(v)) {
+		        double value = cotan[mesh_.edge(h)];
+		        sum += value;
+		        triplets_L.emplace_back(i, mesh_.to_vertex(h).idx(), value);
+		    }
+		    triplets_L.emplace_back(i, i, sum);
+		}
 	}
 
 	L.setFromTriplets(triplets_L.begin(), triplets_L.end());
