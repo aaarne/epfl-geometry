@@ -93,6 +93,8 @@ std::pair<size_t, size_t> get_intervals_borders(float a, float b, float l, float
 	// find the first and the last interval border that fall between the isovalues at the two vertices
 	// Use std::pair to return the indices of the first and the last interval border.
 	// ------------- IMPLEMENT HERE ---------
+	intervals_borders.first = static_cast<size_t>(ceilf((a - l) / interval_size));
+	intervals_borders.second = static_cast<size_t>(floorf((b - l) / interval_size));
 
 	return intervals_borders;
 }
