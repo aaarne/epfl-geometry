@@ -47,11 +47,12 @@ void MeshProcessing::harmonic_function(const std::vector<size_t> & constraint_in
 		// Set up Laplace-Beltrami matrix of the mesh
 		// For the vertices for which the constraints are added, replace the corresponding row of the system with the constraint
 		// ------------- IMPLEMENT HERE ---------
+
+		// no area weights for the vertex?
+
 		if (std::find(constraint_indices.begin(), constraint_indices.end(), i) != constraint_indices.end()) {
 		    triplets_L.emplace_back(i, i, 1);
-		    if (constraint_indices[1] == i) {
-		        rhs(i) = 1;
-		    }
+		    rhs(i) = (constraint_indices[0] == i) ? 0 : 1;
 		} else { // no constraint on i
 		    auto v = Mesh::Vertex(i);
 
@@ -61,7 +62,7 @@ void MeshProcessing::harmonic_function(const std::vector<size_t> & constraint_in
 		        sum += value;
 		        triplets_L.emplace_back(i, mesh_.to_vertex(h).idx(), value);
 		    }
-		    triplets_L.emplace_back(i, i, sum);
+		    triplets_L.emplace_back(i, i, -sum);
 		}
 	}
 
