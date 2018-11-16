@@ -117,7 +117,7 @@ namespace mesh_processing {
         // (isolines_points_.push_back(p0); isolines_points_.push_back(p1);)
         // ------------- IMPLEMENT HERE ---------
 
-        // some helpers for the loop below
+        // some helpers
         std::map<int, Point> points = {{0, v0},
                                        {1, v1},
                                        {2, v2}};
@@ -125,25 +125,16 @@ namespace mesh_processing {
                                      {1, iso1},
                                      {2, iso2}};
 
+        // add intersection point on edge ij (∀i,j ∈ {0,1,2}, i!=j) with ind being the index of the isoline
         auto add_intersection_point = [&](size_t ind, int i, int j) {
             float interpolation_ratio = (l + ind * interval_size - isos.at(i)) / (isos.at(j) - isos.at(i));
             isolines_points_.push_back(points.at(i) + (points.at(j) - points.at(i)) * interpolation_ratio);
         };
 
-        auto in_range = [](const std::pair<size_t, size_t> &range, size_t i) -> bool {
-            return (i >= range.first && i <= range.second);
-        };
-
-        // interval of isolines shared by the two edges
-        size_t lower = min(borders01.first, borders02.first);
-        size_t upper = max(borders01.second, borders02.second);
-        for (size_t index = lower; index <= upper; index++) {
-            if (in_range(borders01, index)) {
+        for (size_t index = borders01.first; index <= borders01.second; index++) {
+            if (index >= borders02.first && index <= borders02.second) {
                 add_intersection_point(index, 0, 1);
-                add_intersection_point(index, (in_range(borders02, index)) ? 0 : 1, 2);
-            } else {
                 add_intersection_point(index, 0, 2);
-                add_intersection_point(index, 1, 2);
             }
         }
     }
