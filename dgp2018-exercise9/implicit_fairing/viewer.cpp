@@ -479,7 +479,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
 	performLayout();
 
 	initShaders();
-	mesh_ = new mesh_processing::MeshProcessing("../data/bunny_1000.obj");
+	mesh_ = new mesh_processing::MeshProcessing("../data/bunny_10000.obj");
 	this->refresh_mesh();
 	this->refresh_trackball_center();
 }
