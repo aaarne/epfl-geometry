@@ -140,11 +140,7 @@ namespace mesh_processing {
         for (size_t index = lower; index <= upper; index++) {
             if (in_range(borders01, index)) {
                 add_intersection_point(index, 0, 1);
-                if (in_range(borders02, index)) {
-                    add_intersection_point(index, 0, 2);
-                } else {
-                    add_intersection_point(index, 1, 2);
-                }
+                add_intersection_point(index, (in_range(borders02, index)) ? 0 : 1, 2);
             } else {
                 add_intersection_point(index, 0, 2);
                 add_intersection_point(index, 1, 2);
