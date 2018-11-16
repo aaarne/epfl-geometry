@@ -48,7 +48,7 @@ void MeshProcessing::harmonic_function(const std::vector<size_t> & constraint_in
 		// For the vertices for which the constraints are added, replace the corresponding row of the system with the constraint
 		// ------------- IMPLEMENT HERE ---------
 
-		// no area weights for the vertex?
+		// no area weights for the vertex? --> solving for zero. TODO explain in readme.txt
 
 		if (std::find(constraint_indices.begin(), constraint_indices.end(), i) != constraint_indices.end()) {
 		    triplets_L.emplace_back(i, i, 1);
@@ -110,6 +110,20 @@ void MeshProcessing::add_isoline_segment(const std::pair<size_t, size_t> & borde
 	// Add an isoline segment when the isoline indices for the two edges coincide 
 	// (isolines_points_.push_back(p0); isolines_points_.push_back(p1);)
 	// ------------- IMPLEMENT HERE ---------
+
+	// interval of isolines shared by the two edges
+    std::pair<size_t, size_t> common_interval;
+    common_interval.first = max(borders01.first, borders02.first);
+    common_interval.second = min(borders01.second, borders02.second);
+
+    // TODO does this make sense?
+    const int num_common_intervals = (common_interval.second - common_interval.first) / interval_size;
+
+    // TODO make sure negative intervals are not considered further
+    // TODO loop through shared isolines and interpolate crossings with edges
+    for (int i = 0; i < num_common_intervals; ++i) {
+        continue;
+    }
 
 }
 
