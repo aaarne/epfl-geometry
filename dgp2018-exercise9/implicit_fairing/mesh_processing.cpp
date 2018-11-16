@@ -97,8 +97,8 @@ namespace mesh_processing {
         // ------------- IMPLEMENT HERE ---------
 
         intervals_borders = {
-                static_cast<size_t>(ceilf((min(a, b) - l) / interval_size)),
-                static_cast<size_t>(floorf((max(a, b) - l) / interval_size))
+                ceilf((min(a, b) - l) / interval_size),
+                floorf((max(a, b) - l) / interval_size)
         };
 
         return intervals_borders;
@@ -126,7 +126,7 @@ namespace mesh_processing {
                                      {2, iso2}};
 
         auto add_intersection_point = [&](size_t ind, int i, int j) {
-            float interpolation_ratio = (ind * interval_size - isos.at(i)) / (isos.at(j) - isos.at(i));
+            float interpolation_ratio = (l + ind * interval_size - isos.at(i)) / (isos.at(j) - isos.at(i));
             isolines_points_.push_back(points.at(i) + (points.at(j) - points.at(i)) * interpolation_ratio);
         };
 
