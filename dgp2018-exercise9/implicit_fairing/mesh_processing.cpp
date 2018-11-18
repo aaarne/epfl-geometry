@@ -49,8 +49,6 @@ namespace mesh_processing {
             // For the vertices for which the constraints are added, replace the corresponding row of the system with the constraint
             // ------------- IMPLEMENT HERE ---------
 
-            // no area weights for the vertex? --> solving for zero. TODO explain in readme.txt
-
             if (std::find(constraint_indices.begin(), constraint_indices.end(), i) != constraint_indices.end()) {
                 triplets_L.emplace_back(i, i, 1);
                 rhs(i) = (constraint_indices[0] == i) ? 0 : 1;
@@ -259,7 +257,7 @@ namespace mesh_processing {
         Scalar lb(-1.0f), ub(1.0f);
 
         // compute for all non-boundary vertices
-        for (auto v: mesh_.vertices()) {
+        for (const auto &v: mesh_.vertices()) {
             Scalar curv = 0.0f;
 
             if (!mesh_.is_boundary(v)) {
