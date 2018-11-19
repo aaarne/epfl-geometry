@@ -2,3 +2,7 @@
 .DS_Store
 */build
 */cmake-build*
+
+*/submission/*.cpp
+*/submission/*.h
+*.zip
