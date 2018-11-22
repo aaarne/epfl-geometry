@@ -55,8 +55,17 @@ namespace mesh_processing {
         // set everything to zero
         for (const auto &v : mesh_.vertices()) v_texture[v] = Vec2d(0, 0);
 
-        // Get any boudary vertex
+        /*
+         * Idea: we construct a map that maps every boundary halfedge to the cumulated length along the boundary.
+         * We start at some vertex on the boundary. Then we follow the halfedges on the boundary as long as we reach
+         * the first vertex again. At the same time we sum the edge lengths and store the cumulated length of for each
+         * boundary halfedge in the map.
+         */
         Mesh::Vertex first_vertex;
+        std::map<Mesh::Halfedge, double> boundary_edges;
+        double cumulated_boundary_length = 0;
+
+        // Find some vertex to start with, which is on the boundary...
         for (const auto &v : mesh_.vertices()) {
             if (mesh_.is_boundary(v)) {
                 first_vertex = v;
@@ -64,15 +73,14 @@ namespace mesh_processing {
             }
         }
 
-        // Idea: create a map of all boundary halfedges mapping to cumulated length on the boundary
-        std::map<Mesh::Halfedge, double> boundary_edges;
-        double cumulated_boundary_length = 0;
-
-        // Traverse boundary halfedges
+        // ...then follow the boundary halfedges starting from it.
+        // (if we traverse cw or ccw doesn't matter and depends on the mesh).
         Mesh::Halfedge h(-1);
         Mesh::Vertex v = first_vertex;
         do {
             bool found = false;
+
+            // select next boundary halfedge not going backwards
             for (const auto &h1 : mesh_.halfedges(v)) {
                 if (mesh_.is_boundary(h1) && mesh_.opposite_halfedge(h1) != h) {
                     h = h1;
@@ -80,7 +88,10 @@ namespace mesh_processing {
                     break;
                 }
             }
+
             if (!found) throw std::runtime_error("Error traversing boundary vertices");
+
+            // compute cumulated length and store the halfedge in the map
             cumulated_boundary_length += mesh_.edge_length(mesh_.edge(h));
             boundary_edges[h] = cumulated_boundary_length;
             v = mesh_.to_vertex(h);
@@ -89,7 +100,8 @@ namespace mesh_processing {
         const double total_length = cumulated_boundary_length;
         cout << "Found " << boundary_edges.size() << " boundary edges with a length of " << total_length << "." << endl;
 
-        // Set vertex position on unit circle
+        // Set vertex position on unit circle. We compute the angle at which the vertex appears on the unit circle and
+        // map it to 2D coordinates using cosine and sine of that angle
         for (const auto& [halfedge, cumulated_length] : boundary_edges ) {
             double phi = 2*M_PI*cumulated_length/total_length;
             v_texture[mesh_.to_vertex(halfedge)] = Vec2d(cos(phi), sin(phi));
