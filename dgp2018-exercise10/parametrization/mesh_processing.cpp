@@ -52,8 +52,8 @@ namespace mesh_processing {
         int n_vertices = mesh_.n_vertices();
         //Homework starting from here
 
-        // set everything to zero
-        for (const auto &v : mesh_.vertices()) v_texture[v] = Vec2d(0, 0);
+        // set everything to center of the circle
+        for (const auto &v : mesh_.vertices()) v_texture[v] = Vec2d(.5, .5);
 
         /*
          * Idea: we construct a map that maps every boundary halfedge to the cumulated length along the boundary.
@@ -104,7 +104,7 @@ namespace mesh_processing {
         // map it to 2D coordinates using cosine and sine of that angle
         for (const auto& [halfedge, cumulated_length] : boundary_edges ) {
             double phi = 2*M_PI*cumulated_length/total_length;
-            v_texture[mesh_.to_vertex(halfedge)] = Vec2d(cos(phi), sin(phi));
+            v_texture[mesh_.to_vertex(halfedge)] = (Vec2d(cos(phi), sin(phi)) / 2) + Vec2d(.5,.5);
         }
 
         //Homework stopping from here

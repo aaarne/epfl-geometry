@@ -1,6 +1,6 @@
-FILE(GLOB Eigen_SVD_SRCS "*.h")
+FILE(GLOB Eigen_SparseCore_SRCS "*.h")
 
-INSTALL(FILES
-  ${Eigen_SVD_SRCS}
-  DESTINATION ${INCLUDE_INSTALL_DIR}/Eigen/src/SVD COMPONENT Devel
+INSTALL(FILES 
+  ${Eigen_SparseCore_SRCS}
+  DESTINATION ${INCLUDE_INSTALL_DIR}/Eigen/src/SparseCore COMPONENT Devel
   )
