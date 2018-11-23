@@ -126,6 +126,32 @@ namespace mesh_processing {
         Mesh::Vertex_property <Vec2d> v_texture = mesh_.vertex_property<Vec2d>("v:texture", Vec2d(0.5, 0.5));
 
         //Homework starting from here
+        Mesh::Vertex_property <Vec2d> v_texture_new = mesh_.vertex_property<Vec2d>("v:texturenew", Vec2d(0.5, 0.5));
+
+        Mesh::Edge_property <Scalar> e_weight =
+                mesh_.edge_property<Scalar>("e:weight", 0.0f);
+
+        for (const auto &vi : mesh_.vertices()) {
+            float sum_edge_weights = 0.f;
+            for (const auto &h : mesh_.halfedges(vi)) {
+                float h_weight = e_weight[mesh_.edge(h)];
+                sum_edge_weights += h_weight;
+                v_texture_new[vi] += h_weight * (v_texture[mesh_.to_vertex(h)] - v_texture[vi]);
+            }
+            v_texture_new[vi] /= sum_edge_weights;
+        }
+
+        // overwrite texture with new texture
+        for (const auto &v : mesh_.vertices()) {
+            if (!mesh_.is_boundary(v)) {
+                v_texture[v] += v_texture_new[v];
+            }
+        }
+
+        cout << "Iterative Solve: Done" << endl;
+
+        // clean up
+        mesh_.remove_vertex_property(v_texture_new);
 
 
         //Homework stopping from here
