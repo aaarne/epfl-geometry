@@ -106,7 +106,6 @@ namespace mesh_processing {
             double phi = 2*M_PI*cumulated_length/total_length;
             v_texture[mesh_.to_vertex(halfedge)] = (Vec2d(cos(phi), sin(phi)) / 2) + Vec2d(.5,.5);
         }
-
         //Homework stopping from here
 
         //Update the texture matrix￼
@@ -126,17 +125,16 @@ namespace mesh_processing {
         Mesh::Vertex_property <Vec2d> v_texture = mesh_.vertex_property<Vec2d>("v:texture", Vec2d(0.5, 0.5));
 
         //Homework starting from here
-        Mesh::Vertex_property <Vec2d> v_texture_new = mesh_.vertex_property<Vec2d>("v:texturenew", Vec2d(0.5, 0.5));
+        Mesh::Vertex_property <Vec2d> v_texture_new = mesh_.vertex_property<Vec2d>("v:texturenew", Vec2d(0, 0));
 
-        Mesh::Edge_property <Scalar> e_weight =
-                mesh_.edge_property<Scalar>("e:weight", 0.0f);
+        Mesh::Edge_property <Scalar> e_weight = mesh_.edge_property<Scalar>("e:weight");
 
         for (const auto &vi : mesh_.vertices()) {
             float sum_edge_weights = 0.f;
             for (const auto &h : mesh_.halfedges(vi)) {
-                float h_weight = e_weight[mesh_.edge(h)];
+                const float h_weight = e_weight[mesh_.edge(h)];
                 sum_edge_weights += h_weight;
-                v_texture_new[vi] += h_weight * (v_texture[mesh_.to_vertex(h)] - v_texture[vi]);
+                v_texture_new[vi] += h_weight * v_texture[mesh_.to_vertex(h)];
             }
             v_texture_new[vi] /= sum_edge_weights;
         }
@@ -144,7 +142,7 @@ namespace mesh_processing {
         // overwrite texture with new texture
         for (const auto &v : mesh_.vertices()) {
             if (!mesh_.is_boundary(v)) {
-                v_texture[v] += v_texture_new[v];
+                v_texture[v] = v_texture_new[v];
             }
         }
 
