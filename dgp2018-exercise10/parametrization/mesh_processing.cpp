@@ -16,6 +16,7 @@
 #include <set>
 #include <unordered_map>
 #include <cmath>
+#include <chrono>
 
 namespace mesh_processing {
 
@@ -102,9 +103,9 @@ namespace mesh_processing {
 
         // Set vertex position on unit circle. We compute the angle at which the vertex appears on the unit circle and
         // map it to 2D coordinates using cosine and sine of that angle
-        for (const auto& [halfedge, cumulated_length] : boundary_edges ) {
-            double phi = 2*M_PI*cumulated_length/total_length;
-            v_texture[mesh_.to_vertex(halfedge)] = (Vec2d(cos(phi), sin(phi)) / 2) + Vec2d(.5,.5);
+        for (const auto&[halfedge, cumulated_length] : boundary_edges) {
+            double phi = 2 * M_PI * cumulated_length / total_length;
+            v_texture[mesh_.to_vertex(halfedge)] = (Vec2d(cos(phi), sin(phi)) / 2) + Vec2d(.5, .5);
         }
         //Homework stopping from here
 
@@ -163,9 +164,38 @@ namespace mesh_processing {
 // ========================================================================
     void MeshProcessing::direct_solve_textures() {
         Mesh::Vertex_property <Vec2d> v_texture = mesh_.vertex_property<Vec2d>("v:texture", Vec2d(0.0));
+        Mesh::Edge_property <Scalar> cotan = mesh_.edge_property<Scalar>("e:weight");
         int n_vertices = mesh_.n_vertices();
         //Homework starting from here
+        Eigen::SparseMatrix<double> A(n_vertices, n_vertices);
+        Eigen::MatrixXd b(Eigen::MatrixXd::Zero(n_vertices, 2));
+        std::vector<Eigen::Triplet<double>> triplets;
 
+        // Construct matrices
+        for (const auto &v : mesh_.vertices()) {
+            if (mesh_.is_boundary(v)) {
+                b.row(v.idx()) << v_texture[v][0], v_texture[v][1];
+                triplets.emplace_back(v.idx(), v.idx(), 1);
+            } else {
+                double sum = 0;
+                for (const auto &h : mesh_.halfedges(v)) {
+                    double value = cotan[mesh_.edge(h)];
+                    sum += value;
+                    triplets.emplace_back(v.idx(), mesh_.to_vertex(h).idx(), value);
+                }
+                triplets.emplace_back(v.idx(), v.idx(), -sum);
+            }
+        }
+
+        A.setFromTriplets(triplets.begin(), triplets.end());
+        Eigen::SparseLU<Eigen::SparseMatrix<double>> solver(A);
+        assert(solver.info() == Eigen::Success);
+        Eigen::MatrixXd U = solver.solve(b);
+        assert(solver.info() == Eigen::Success);
+
+        for (const auto &v : mesh_.vertices()) {
+            v_texture[v] = Vec2d(U(v.idx(), 0), U(v.idx(), 1));
+        }
         //Homework stopping from here
         //Update the texture matrix
         texture_ = Eigen::MatrixXf(2, n_vertices);
