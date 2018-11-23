@@ -126,7 +126,6 @@ namespace mesh_processing {
 
         //Homework starting from here
         Mesh::Vertex_property <Vec2d> v_texture_new = mesh_.vertex_property<Vec2d>("v:texturenew", Vec2d(0, 0));
-
         Mesh::Edge_property <Scalar> e_weight = mesh_.edge_property<Scalar>("e:weight");
 
         for (const auto &vi : mesh_.vertices()) {
@@ -145,9 +144,6 @@ namespace mesh_processing {
                 v_texture[v] = v_texture_new[v];
             }
         }
-
-        cout << "Iterative Solve: Done" << endl;
-
         // clean up
         mesh_.remove_vertex_property(v_texture_new);
 
