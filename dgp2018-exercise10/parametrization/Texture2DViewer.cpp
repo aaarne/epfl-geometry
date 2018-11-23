@@ -36,7 +36,7 @@ void Texture2DViewer::draw(NVGcontext *ctx) {
     Vector2f screenSize = screen->size().cast<float>();
     Vector2f positionInScreen = absolutePosition().cast<float>();
     Vector2f positionAfterOffset = positionInScreen + Vector2f(0, mSize.y()) - screenSize / 2;
-    Vector2f origin = positionAfterOffset.cwiseQuotient(screenSize); origin = origin * r;
+    Vector2f origin = positionAfterOffset.cwiseQuotient(screenSize); origin = origin * 2.;
     Vector2f ratio = Vector2f(mSize.x(), mSize.y()); ratio = ratio.cwiseQuotient(screenSize / 2);
     glEnable(GL_SCISSOR_TEST);
     glScissor(positionInScreen.x() * r,

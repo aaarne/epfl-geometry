@@ -218,11 +218,13 @@ namespace mesh_processing {
         auto cotan = mesh_.edge_property<Scalar>("e:weight");
 
         Eigen::SparseMatrix<double> L(n, n);
+        Eigen::MatrixXd rhs(Eigen::MatrixXd::Zero(n, 3));
         std::vector<Eigen::Triplet<double> > triplets_L;
 
         for (const auto &v : mesh_.vertices()) {
             if (mesh_.is_boundary(v)) {
                 Vec3d p = mesh_.position(v);
+                rhs.row(v.idx()) << p.x, p.y, p.z;
                 triplets_L.emplace_back(v.idx(), v.idx(), 1);
             } else {
                 double sum = 0;
@@ -236,11 +238,11 @@ namespace mesh_processing {
         }
 
         L.setFromTriplets(triplets_L.begin(), triplets_L.end());
-        Eigen::SparseLU<Eigen::SparseMatrix<double> > solver(L);
+        Eigen::SparseLU<Eigen::SparseMatrix<double>> solver(L);
         if (solver.info() != Eigen::Success) {
             printf("linear solver init failed.\n");
         }
-        Eigen::MatrixXd X = solver.solve(Eigen::MatrixXd::Zero(n, 3));
+        Eigen::MatrixXd X = solver.solve(rhs);
         if (solver.info() != Eigen::Success) {
             printf("linear solver failed.\n");
         }
