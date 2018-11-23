@@ -193,6 +193,7 @@ namespace mesh_processing {
         Eigen::MatrixXd U = solver.solve(b);
         assert(solver.info() == Eigen::Success);
 
+        // copy solution to vertex property
         for (const auto &v : mesh_.vertices()) {
             v_texture[v] = Vec2d(U(v.idx(), 0), U(v.idx(), 1));
         }
@@ -211,55 +212,27 @@ namespace mesh_processing {
 // ======================================================================
     void MeshProcessing::minimal_surface() {
         const int n = mesh_.n_vertices();
-
-        calc_weights();
         auto cotan = mesh_.edge_property<Scalar>("e:weight");
 
         Eigen::SparseMatrix<double> L(n, n);
         Eigen::MatrixXd rhs(Eigen::MatrixXd::Zero(n, 3));
         std::vector<Eigen::Triplet<double> > triplets_L;
 
-        for (int i = 0; i < n; ++i) {
-
-            // ------------- IMPLEMENT HERE ---------
-            // Set up Laplace-Beltrami matrix of the mesh
-            // For the vertices for which the constraints are added, replace the corresponding row of the system with the constraint
-            // ------------- IMPLEMENT HERE ---------
-
-            auto vi = Mesh::Vertex(i);
-
-            double sum = 0;
-
-            Eigen::Vector3f bi;
-            bi << 0, 0, 0;
-
-            for (const auto &h : mesh_.halfedges(vi)) {
-                auto vj = mesh_.to_vertex(h);
-                auto j = vj.idx();
-
-                double value = cotan[mesh_.edge(h)];
-
-                if (mesh_.is_boundary(h)) {
-                    triplets_L.emplace_back(i, j, 0.f);
-                } else {
+        for (const auto &v : mesh_.vertices()) {
+            if (mesh_.is_boundary(v)) {
+                Vec3d p = mesh_.position(v);
+                rhs.row(v.idx()) << p.x, p.y, p.z;
+                triplets_L.emplace_back(v.idx(), v.idx(), 1);
+            } else {
+                double sum = 0;
+                for (const auto &h : mesh_.halfedges(v)) {
+                    double value = cotan[mesh_.edge(h)];
                     sum += value;
-                    triplets_L.emplace_back(i, j, value);
+                    triplets_L.emplace_back(v.idx(), mesh_.to_vertex(h).idx(), value);
                 }
-
-                // now the right hand side
-                if (mesh_.is_boundary(vj)) {
-                    Vec3d p = mesh_.position(vj);
-                    Eigen::Vector3f p_eigen;
-                    p_eigen << p.x, p.y, p.z;
-
-                    bi -= value * p_eigen;
-                }
+                triplets_L.emplace_back(v.idx(), v.idx(), -sum);
             }
-            triplets_L.emplace_back(i, i, -sum);
-            rhs.row(i) << bi;
-
         }
-
 
         L.setFromTriplets(triplets_L.begin(), triplets_L.end());
         Eigen::SparseLU<Eigen::SparseMatrix<double> > solver(L);
@@ -272,12 +245,10 @@ namespace mesh_processing {
         }
 
         for (const auto &v : mesh_.vertices()) {
+            if (mesh_.is_boundary(v)) continue;
             Eigen::Vector3d x = X.row(v.idx());
-            mesh_.position(v) = Vec3d(x.x, x.y, x.z);
+            mesh_.position(v) = Vec3d(x(0), x(1), x(2));
         }
-
-        // clean-up
-        mesh_.remove_edge_property(cotan);
     }
 
 // ======================================================================
