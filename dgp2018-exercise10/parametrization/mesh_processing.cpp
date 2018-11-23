@@ -210,7 +210,74 @@ namespace mesh_processing {
 // EXERCISE 2 Minimal Surfaces
 // ======================================================================
     void MeshProcessing::minimal_surface() {
+        const int n = mesh_.n_vertices();
 
+        calc_weights();
+        auto cotan = mesh_.edge_property<Scalar>("e:weight");
+
+        Eigen::SparseMatrix<double> L(n, n);
+        Eigen::MatrixXd rhs(Eigen::MatrixXd::Zero(n, 3));
+        std::vector<Eigen::Triplet<double> > triplets_L;
+
+        for (int i = 0; i < n; ++i) {
+
+            // ------------- IMPLEMENT HERE ---------
+            // Set up Laplace-Beltrami matrix of the mesh
+            // For the vertices for which the constraints are added, replace the corresponding row of the system with the constraint
+            // ------------- IMPLEMENT HERE ---------
+
+            auto vi = Mesh::Vertex(i);
+
+            double sum = 0;
+
+            Eigen::Vector3f bi;
+            bi << 0, 0, 0;
+
+            for (const auto &h : mesh_.halfedges(vi)) {
+                auto vj = mesh_.to_vertex(h);
+                auto j = vj.idx();
+
+                double value = cotan[mesh_.edge(h)];
+
+                if (mesh_.is_boundary(h)) {
+                    triplets_L.emplace_back(i, j, 0.f);
+                } else {
+                    sum += value;
+                    triplets_L.emplace_back(i, j, value);
+                }
+
+                // now the right hand side
+                if (mesh_.is_boundary(vj)) {
+                    Vec3d p = mesh_.position(vj);
+                    Eigen::Vector3f p_eigen;
+                    p_eigen << p.x, p.y, p.z;
+
+                    bi -= value * p_eigen;
+                }
+            }
+            triplets_L.emplace_back(i, i, -sum);
+            rhs.row(i) << bi;
+
+        }
+
+
+        L.setFromTriplets(triplets_L.begin(), triplets_L.end());
+        Eigen::SparseLU<Eigen::SparseMatrix<double> > solver(L);
+        if (solver.info() != Eigen::Success) {
+            printf("linear solver init failed.\n");
+        }
+        Eigen::MatrixXd X = solver.solve(rhs);
+        if (solver.info() != Eigen::Success) {
+            printf("linear solver failed.\n");
+        }
+
+        for (const auto &v : mesh_.vertices()) {
+            Eigen::Vector3d x = X.row(v.idx());
+            mesh_.position(v) = Vec3d(x.x, x.y, x.z);
+        }
+
+        // clean-up
+        mesh_.remove_edge_property(cotan);
     }
 
 // ======================================================================
