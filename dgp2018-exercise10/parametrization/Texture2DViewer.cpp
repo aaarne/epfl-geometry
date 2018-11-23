@@ -99,7 +99,7 @@ void Texture2DViewer::init_shader()
             "#version 330\n"
             "out vec4 color;\n"
             "void main() {\n"
-            " color = vec4(1.0, 0.0, 0.0, 1.0);\n"
+            " color = vec4(1.0, 1.0, 1.0, 1.0);\n"
             "}"
     );
 }
