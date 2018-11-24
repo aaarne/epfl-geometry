@@ -267,7 +267,30 @@ namespace mesh_processing {
     void MeshProcessing::calc_uniform_mean_curvature() {
         Mesh::Vertex_property <Scalar> v_unicurvature =
                 mesh_.vertex_property<Scalar>("v:unicurvature", 0.0f);
-        // ------------- COPY YOUR FUNCTION FROM EXERCISE 4 ---------
+
+        Mesh::Vertex_around_vertex_circulator vv_c, vv_end;
+        Point laplace(0.0);
+
+        for (auto v: mesh_.vertices()) {
+            Scalar curv = 0;
+
+            if (!mesh_.is_boundary(v)) {
+                laplace = Point(0.0f);
+                double n = 0;
+                vv_c = mesh_.vertices(v);
+                vv_end = vv_c;
+
+                do {
+                    laplace += (mesh_.position(*vv_c) - mesh_.position(v));
+                    ++n;
+                } while (++vv_c != vv_end);
+
+                laplace /= n;
+
+                curv = 0.5f * norm(laplace);
+            }
+            v_unicurvature[v] = curv;
+        }
     }
 
     void MeshProcessing::calc_mean_curvature() {
@@ -277,7 +300,34 @@ namespace mesh_processing {
                 mesh_.edge_property<Scalar>("e:weight", 0.0f);
         Mesh::Vertex_property <Scalar> v_weight =
                 mesh_.vertex_property<Scalar>("v:weight", 0.0f);
-        // ------------- COPY YOUR FUNCTION FROM EXERCISE 4 ---------
+
+        Mesh::Halfedge_around_vertex_circulator vh_c, vh_end;
+        Mesh::Vertex neighbor_v;
+        Mesh::Edge e;
+        Point laplace(0.0f, 0.0f, 0.0f);
+
+        for (auto v: mesh_.vertices()) {
+            Scalar curv = 0.0f;
+
+            if (!mesh_.is_boundary(v)) {
+                laplace = Point(0.0f, 0.0f, 0.0f);
+
+                vh_c = mesh_.halfedges(v);
+                vh_end = vh_c;
+
+                do {
+                    e = mesh_.edge(*vh_c);
+                    neighbor_v = mesh_.to_vertex(*vh_c);
+                    laplace += e_weight[e] * (mesh_.position(neighbor_v) -
+                                              mesh_.position(v));
+
+                } while (++vh_c != vh_end);
+
+                laplace *= v_weight[v];
+                curv = 0.5f * norm(laplace);
+            }
+            v_curvature[v] = curv;
+        }
     }
 
     void MeshProcessing::calc_gauss_curvature() {
@@ -285,7 +335,35 @@ namespace mesh_processing {
                 mesh_.vertex_property<Scalar>("v:gauss_curvature", 0.0f);
         Mesh::Vertex_property <Scalar> v_weight =
                 mesh_.vertex_property<Scalar>("v:weight", 0.0f);
-        // ------------- COPY YOUR FUNCTION FROM EXERCISE 4 ---------
+
+        Mesh::Vertex_around_vertex_circulator vv_c, vv_c2, vv_end;
+        Point d0, d1;
+        Scalar angles, cos_angle;
+        Scalar lb(-1.0f), ub(1.0f);
+
+        // compute for all non-boundary vertices
+        for (const auto &v: mesh_.vertices()) {
+            Scalar curv = 0.0f;
+
+            if (!mesh_.is_boundary(v)) {
+                angles = 0.0f;
+
+                vv_c = mesh_.vertices(v);
+                vv_end = vv_c;
+
+                do {
+                    vv_c2 = vv_c;
+                    ++vv_c2;
+                    d0 = normalize(mesh_.position(*vv_c) - mesh_.position(v));
+                    d1 = normalize(mesh_.position(*vv_c2) - mesh_.position(v));
+                    cos_angle = max(lb, min(ub, dot(d0, d1)));
+                    angles += acos(cos_angle);
+                } while (++vv_c != vv_end);
+
+                curv = (2 * (Scalar) M_PI - angles) * 2.0f * v_weight[v];
+            }
+            v_gauss_curvature[v] = curv;
+        }
     }
 
     void MeshProcessing::calc_edges_weights() {
