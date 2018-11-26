@@ -211,9 +211,6 @@ namespace mesh_processing {
 // EXERCISE 2 Minimal Surfaces
 // ======================================================================
     void MeshProcessing::minimal_surface() {
-        /*
-         * TODO: The assignment asks for solving this via a homoegenous system LX = 0, but we solve LX = rhs
-         */
         const int n = mesh_.n_vertices();
         auto cotan = mesh_.edge_property<Scalar>("e:weight");
 
@@ -438,6 +435,7 @@ namespace mesh_processing {
     }
 
     void MeshProcessing::load_mesh(const string &filename) {
+        cout << filename << endl;
         if (!mesh_.read(filename)) {
             std::cerr << "Mesh not found, exiting." << std::endl;
             exit(-1);

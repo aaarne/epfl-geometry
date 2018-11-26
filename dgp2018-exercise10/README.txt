@@ -1,3 +1,5 @@
+Exercise 10 - Parametrization and Minimal Surfaces
+
 Group 7: Arne Sachtler, Jannik Reichert, Niklas Schmitz
 
 
