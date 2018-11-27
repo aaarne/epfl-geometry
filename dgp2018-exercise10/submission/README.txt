@@ -10,8 +10,15 @@ Exercise 1.2:
     over the halfedges. Note that this implicitly enforces convexity of the weights used.
 
 
+Results:
+
+We observe that the mapping of the head model the unit circle results in a bad textured result. Looking at the 2D parameter
+domain reveals that the entire head is maps very close to the center of the circle. This is because we have a small boundary
+consisting of a small amount of vertices which are connected to each other.
+
+
 -- TODO ---
-{ } warum 'almost closed' max so schlecht gemappt: boundary sehr klein (wenig vertices)
+{x} warum 'almost closed' max so schlecht gemappt: boundary sehr klein (wenig vertices)
 { } stationaer bei implicit minimal surface nur bei uniform, da LGS gleich bleibt.
 	nicht fuer cotan weights.
 { } was haben wir mit LX=0 right hand side gemacht (kurz erwaehnen)

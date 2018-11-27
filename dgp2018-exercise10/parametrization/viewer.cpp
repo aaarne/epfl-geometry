@@ -398,6 +398,12 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
         this->refresh_mesh();
         this->refresh_trackball_center();
     });
+    b = new Button(popup, "Moebius Strip");
+    b ->setCallback([this]() {
+        mesh_->load_mesh("../data/mobius.obj");
+        this->refresh_mesh();
+        this->refresh_trackball_center();
+    });
 
     b = new Button(popup, "Open mesh ...");
     b->setCallback([this]() {
