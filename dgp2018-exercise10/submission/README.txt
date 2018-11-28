@@ -14,7 +14,6 @@ Exercise 1.2:
 
 Results:
 
-<<<<<<< HEAD
 Poor Texture on Max Head:
 
 We observe that the mapping of the head model onto the unit circle results in poor texture quality.
