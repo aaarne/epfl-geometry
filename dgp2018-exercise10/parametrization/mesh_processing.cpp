@@ -129,25 +129,27 @@ namespace mesh_processing {
         Mesh::Vertex_property <Vec2d> v_texture_new = mesh_.vertex_property<Vec2d>("v:texturenew", Vec2d(0, 0));
         Mesh::Edge_property <Scalar> e_weight = mesh_.edge_property<Scalar>("e:weight");
 
-        for (const auto &vi : mesh_.vertices()) {
-            float sum_edge_weights = 0.f;
-            for (const auto &h : mesh_.halfedges(vi)) {
-                const float h_weight = e_weight[mesh_.edge(h)];
-                sum_edge_weights += h_weight;
-                v_texture_new[vi] += h_weight * v_texture[mesh_.to_vertex(h)];
+        for (int i = 0; i < item_times; ++i) {
+            for (const auto &vi : mesh_.vertices()) {
+                float sum_edge_weights = 0.f;
+                v_texture_new[vi] = Vec2d(0, 0);
+                for (const auto &h : mesh_.halfedges(vi)) {
+                    const float h_weight = e_weight[mesh_.edge(h)];
+                    sum_edge_weights += h_weight;
+                    v_texture_new[vi] += h_weight * v_texture[mesh_.to_vertex(h)];
+                }
+                v_texture_new[vi] /= sum_edge_weights;
             }
-            v_texture_new[vi] /= sum_edge_weights;
+
+            // override texture with new texture
+            for (const auto &v : mesh_.vertices()) {
+                if (!mesh_.is_boundary(v)) {
+                    v_texture[v] = v_texture_new[v];
+                }
+            }
         }
 
-        // overwrite texture with new texture
-        for (const auto &v : mesh_.vertices()) {
-            if (!mesh_.is_boundary(v)) {
-                v_texture[v] = v_texture_new[v];
-            }
-        }
-        // clean up
         mesh_.remove_vertex_property(v_texture_new);
-
 
         //Homework stopping from here
         //Update the texture matrix
@@ -157,6 +159,7 @@ namespace mesh_processing {
             texture_.col(j) << v_texture[v][0], v_texture[v][1];
             j++;
         }
+
     }
 
 // ======================================================================
@@ -180,6 +183,8 @@ namespace mesh_processing {
                 double sum = 0;
                 for (const auto &h : mesh_.halfedges(v)) {
                     double value = cotan[mesh_.edge(h)];
+                    // uncomment this for uniform Laplacian:
+                    //  double value = 1;
                     sum += value;
                     triplets.emplace_back(v.idx(), mesh_.to_vertex(h).idx(), value);
                 }
