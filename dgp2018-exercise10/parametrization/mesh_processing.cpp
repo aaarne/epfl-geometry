@@ -183,6 +183,7 @@ namespace mesh_processing {
                 double sum = 0;
                 for (const auto &h : mesh_.halfedges(v)) {
                     double value = cotan[mesh_.edge(h)];
+                    assert(value >= 0);
                     // uncomment this for uniform Laplacian:
                     //  double value = 1;
                     sum += value;
