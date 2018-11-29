@@ -42,12 +42,31 @@ Comparison of Uniform and Cotangent Weighted Minimal Surfaces:
 
 	The discrete Laplacian matrix is only depending on vertex connectivity if we use uniform weights.
 	Consequently, the solution of the linear equation system is always the same if we solve for the 
-	minimal surface on the mesh multiple times. 
-	TODO: add fancy plot of percentage of zero weight for cotan
+	minimal surface on the mesh multiple times.
 
--- TODO ---
-{x} warum 'almost closed' max so schlecht gemappt: boundary sehr klein (wenig vertices)
-{ } stationaer bei implicit minimal surface nur bei uniform, da LGS gleich bleibt.
-	nicht fuer cotan weights.
-{ } was haben wir mit LX=0 right hand side gemacht (kurz erwaehnen)
-{ } check for solution of 1.3 (only nxn matrix? and not ((n+m)x(n+m))?)
+	In the folder "minimal_uniform" you can see the initial state of cylinder3 and the result of the minimal
+	surface operation on the mesh after the first and the second run. We observe that indeed the solution of
+	the minimal of the initial surface is always the same no matter how often we execute the procedure.
+
+	On the other hand, the folder "minimal_cotan" shows the results of applying the minimal surface opration multiple
+	times using cotan weights. We observe that the solution is not stationary as the system of equations depends not
+	only on the graph structure of the mesh, but also on the geometry. Additionally, after the 4th application a strange
+	singularity appears, where the cylinder has zero diameter everywhere except at the boundary circles.
+	Iterating even longer results in a periodic behaviour yielding the results shown in "after_n.png" and "after_n+1.png"
+	alternatingly.
+	Also looking at the amount of edges having 0 weights shows an  characteristic behaviour using cotan weights when
+	applying the minimal surface operator multiple times:
+        0 out of 825 cotan weights were 0. (1. iteration)
+        0 out of 825 cotan weights were 0.
+        30 out of 825 cotan weights were 0.
+        30 out of 825 cotan weights were 0.
+        58 out of 825 cotan weights were 0.
+        60 out of 825 cotan weights were 0.
+        53 out of 825 cotan weights were 0.
+        45 out of 825 cotan weights were 0.
+        30 out of 825 cotan weights were 0.
+        105 out of 825 cotan weights were 0.
+        90 out of 825 cotan weights were 0. (11. iteration)
+        90 out of 825 cotan weights were 0.
+        90 out of 825 cotan weights were 0. ... (goes on with 90 forever)
+

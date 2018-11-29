@@ -171,104 +171,45 @@ namespace mesh_processing {
         Mesh::Edge_property <Scalar> cotan = mesh_.edge_property<Scalar>("e:weight");
         int n_vertices = mesh_.n_vertices();
         //Homework starting from here
-
-        hrc::time_point begin = hrc::now();
-
         bool use_uniform_laplacian = false;
 
-        int in, im = 0;
-        std::map<int, int> v2m_n, v2m_m;
-        std::vector<Mesh::Vertex> boundary_vertices, non_boundary_vertices;
+        hrc::time_point begin = hrc::now();
+        Eigen::SparseMatrix<double> A(n_vertices, n_vertices);
+        Eigen::MatrixXd b(Eigen::MatrixXd::Zero(n_vertices, 2));
+        std::vector<Eigen::Triplet<double>> triplets;
+
+        // Construct matrices
         for (const auto &v : mesh_.vertices()) {
             if (mesh_.is_boundary(v)) {
-                boundary_vertices.push_back(v);
-                v2m_m[v.idx()] = im++;
+                b.row(v.idx()) << v_texture[v][0], v_texture[v][1];
+                triplets.emplace_back(v.idx(), v.idx(), 1);
             } else {
-                v2m_n[v.idx()] = in++;
-                non_boundary_vertices.push_back(v);
-            }
-        }
-        const long n = non_boundary_vertices.size();
-        const long m = boundary_vertices.size();
-
-        Eigen::SparseMatrix<double> Delta_nn(n, n), Delta_nm(n, m);
-        Eigen::MatrixXd u_bar(Eigen::MatrixXd::Zero(m, 2));
-        std::vector<Eigen::Triplet<double>> nn_triplets, nm_triplets;
-
-        for (const auto &v : non_boundary_vertices) {
-            double sum = 0;
-            for (const auto &h : mesh_.halfedges(v)) {
-                double value = use_uniform_laplacian ? 1 : cotan[mesh_.edge(h)];
-                assert(value >= 0);
-                sum += value;
-                if (mesh_.is_boundary(mesh_.to_vertex(h))) {
-                    nm_triplets.emplace_back(v2m_n[v.idx()],
-                                             v2m_m[mesh_.to_vertex(h).idx()],
-                                             value);
-                } else {
-                    nn_triplets.emplace_back(v2m_n[v.idx()],
-                                             v2m_n[mesh_.to_vertex(h).idx()],
-                                             value);
+                double sum = 0;
+                for (const auto &h : mesh_.halfedges(v)) {
+                    double value = use_uniform_laplacian ? 1 : cotan[mesh_.edge(h)];
+                    assert(value >= 0);
+                    sum += value;
+                    triplets.emplace_back(v.idx(), mesh_.to_vertex(h).idx(), value);
                 }
+                triplets.emplace_back(v.idx(), v.idx(), -sum);
             }
-            nn_triplets.emplace_back(v2m_n[v.idx()], v2m_n[v.idx()], -sum);
         }
 
-        for (const auto &v : boundary_vertices) {
-            u_bar.row(v2m_m[v.idx()]) << v_texture[v][0], v_texture[v][1];
-        }
-
-        Delta_nn.setFromTriplets(nn_triplets.begin(), nn_triplets.end());
-        Delta_nm.setFromTriplets(nm_triplets.begin(), nm_triplets.end());
-
-        Eigen::MatrixXd rhs(-Delta_nm * u_bar);
-
-        Eigen::SparseLU<Eigen::SparseMatrix<double>> solver(Delta_nn);
+        A.setFromTriplets(triplets.begin(), triplets.end());
+        Eigen::SparseLU<Eigen::SparseMatrix<double>> solver(A);
         assert(solver.info() == Eigen::Success);
-        Eigen::MatrixXd sol = solver.solve(rhs);
+        Eigen::MatrixXd U = solver.solve(b);
         assert(solver.info() == Eigen::Success);
 
-        for (const auto &v : non_boundary_vertices) {
-            v_texture[v] = Vec2d(sol(v2m_n[v.idx()], 0), sol(v2m_n[v.idx()], 1));
+        // copy solution to vertex property
+        for (const auto &v : mesh_.vertices()) {
+            v_texture[v] = Vec2d(U(v.idx(), 0), U(v.idx(), 1));
         }
-
-
-//        Eigen::SparseMatrix<double> A(n_vertices, n_vertices);
-//        Eigen::MatrixXd b(Eigen::MatrixXd::Zero(n_vertices, 2));
-//        std::vector<Eigen::Triplet<double>> triplets;
-//
-//        // Construct matrices
-//        for (const auto &v : mesh_.vertices()) {
-//            if (mesh_.is_boundary(v)) {
-//                b.row(v.idx()) << v_texture[v][0], v_texture[v][1];
-//                triplets.emplace_back(v.idx(), v.idx(), 1);
-//            } else {
-//                double sum = 0;
-//                for (const auto &h : mesh_.halfedges(v)) {
-//                    double value = cotan[mesh_.edge(h)];
-//                    assert(value >= 0);
-//                    // uncomment this for uniform Laplacian:
-//                    //  double value = 1;
-//                    sum += value;
-//                    triplets.emplace_back(v.idx(), mesh_.to_vertex(h).idx(), value);
-//                }
-//                triplets.emplace_back(v.idx(), v.idx(), -sum);
-//            }
-//        }
-//
-//        A.setFromTriplets(triplets.begin(), triplets.end());
-//        Eigen::SparseLU<Eigen::SparseMatrix<double>> solver(A);
-//        assert(solver.info() == Eigen::Success);
-//        Eigen::MatrixXd U = solver.solve(b);
-//        assert(solver.info() == Eigen::Success);
-//
-//        // copy solution to vertex property
-//        for (const auto &v : mesh_.vertices()) {
-//            v_texture[v] = Vec2d(U(v.idx(), 0), U(v.idx(), 1));
-//        }
 
         cout << "Elapsed time for direct solve: "
-             << std::chrono::duration_cast<std::chrono::milliseconds>(hrc::now() - begin).count() << " ms." << endl;
+             << std::chrono::duration_cast<std::chrono::milliseconds>(hrc::now() - begin).count()
+             << " ms." << endl;
+
         //Homework stopping from here
         //Update the texture matrix
         texture_ = Eigen::MatrixXf(2, n_vertices);
@@ -321,6 +262,12 @@ namespace mesh_processing {
             Eigen::Vector3d x = X.row(v.idx());
             mesh_.position(v) = Vec3d(x(0), x(1), x(2));
         }
+
+        int zeros = 0;
+        for (const auto &e : mesh_.edges()) {
+            if (cotan[e] == 0) zeros++;
+        }
+        cout << zeros << " out of " << mesh_.n_edges() << " cotan weights were 0." << endl;
     }
 
 // ======================================================================
