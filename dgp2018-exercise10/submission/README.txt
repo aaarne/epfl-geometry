@@ -9,7 +9,20 @@ Exercise 1.2:
     but rather multiply the texture coordinates by the unnormalized weights and 
     divide the results by the sum of the weights. Thus, we only need a single loop
     over the halfedges. Note that this implicitly enforces a convex combination
-    of the weights used. We assert non-negativity for all weights explicitly.
+    of the weights used. We assert non-negativity for all weights explicitly and observe
+    that it does not fail, which is also obvious looking at the code of calc_edge_weights().
+
+Exercise 1.3:
+    We tried both approaches:
+        1. Solving the simple (n+m)x(n+m) having the one-hot encoded rows for boundary vertices and
+        2. Solving the reduced nxn system as provided in the slides.
+    We verified successfully, that the reduced system (2.) and the complete system (1.) yield the same results.
+    However, comparing the run-time shows that the overall runtime of the reduced system is slower as we need
+    more time to set up the matrices and the need to perform a mapping from vertex to matrix indicies.
+    On the Max Planck mesh the full system (1.) need ~85ms in release profile, while the reduced
+    system (2.) needs 110ms. So even though the system to be solved is smaller in terms of dimensions the
+    runtime is longer. That's why we keep the (n+m)x(n+m) approach for the final solution as it is (surprisingly)
+    faster and the code is simpler and therefore more beautiful.
 
 Exercise 2:
 	We adapt the homogeneous linear equation system of the form LX=0 by adding the boundary
@@ -32,10 +45,9 @@ Comparison of Uniform and Cotangent Weighted Minimal Surfaces:
 	minimal surface on the mesh multiple times. 
 	TODO: add fancy plot of percentage of zero weight for cotan
 
-
-
 -- TODO ---
 {x} warum 'almost closed' max so schlecht gemappt: boundary sehr klein (wenig vertices)
 { } stationaer bei implicit minimal surface nur bei uniform, da LGS gleich bleibt.
 	nicht fuer cotan weights.
 { } was haben wir mit LX=0 right hand side gemacht (kurz erwaehnen)
+{ } check for solution of 1.3 (only nxn matrix? and not ((n+m)x(n+m))?)
