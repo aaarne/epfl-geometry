@@ -55,7 +55,7 @@ Comparison of Uniform and Cotangent Weighted Minimal Surfaces:
 	Iterating even longer results in a periodic behaviour yielding the results shown in "after_n.png" and "after_n+1.png"
 	alternatingly.
 	Also looking at the amount of edges having 0 weights shows an  characteristic behaviour using cotan weights when
-	applying the minimal surface operator multiple times:
+	applying the minimal surface operator multiple times on the cylinder3 model:
         0 out of 825 cotan weights were 0. (1. iteration)
         0 out of 825 cotan weights were 0.
         30 out of 825 cotan weights were 0.
