@@ -74,6 +74,7 @@ namespace mesh_processing {
                 break;
             }
         }
+        if (first_vertex.idx() < 0) throw std::runtime_error("mesh has no boundary!");
 
         // ...then follow the boundary halfedges starting from it.
         // (if we traverse cw or ccw doesn't matter and depends on the mesh).
@@ -207,8 +208,7 @@ namespace mesh_processing {
         }
 
         cout << "Elapsed time for direct solve: "
-             << std::chrono::duration_cast<std::chrono::milliseconds>(hrc::now() - begin).count()
-             << " ms." << endl;
+             << std::chrono::duration_cast<std::chrono::milliseconds>(hrc::now() - begin).count() << " ms." << endl;
 
         //Homework stopping from here
         //Update the texture matrix
@@ -267,6 +267,7 @@ namespace mesh_processing {
         for (const auto &e : mesh_.edges()) {
             if (cotan[e] == 0) zeros++;
         }
+
         cout << zeros << " out of " << mesh_.n_edges() << " cotan weights were 0." << endl;
     }
 
