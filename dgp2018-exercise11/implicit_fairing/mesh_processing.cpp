@@ -83,7 +83,7 @@ namespace mesh_processing {
          * This version can only solve system of the form Lx=b, where x and b are vectors. So we cannot simply solve
          * LX=B this time. :(
          * BTW: the code does compile also when attempting to solve LX=B, but Eigen will then only solve for the first
-         * column... Took us
+         * column...
          */
         Eigen::VectorXd sol_x = solver.solve(rhs.col(0)),
                 sol_y = solver.solve(rhs.col(1)),
