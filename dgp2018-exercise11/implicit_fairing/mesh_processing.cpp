@@ -51,7 +51,21 @@ namespace mesh_processing {
             // ------------- IMPLEMENT HERE ---------
             // Set up Laplace-Beltrami matrix of the mesh
             // ------------- IMPLEMENT HERE ---------
+            auto v = Mesh::Vertex(i);
+            if (mesh_.is_boundary(v)) {
+                triplets_L.emplace_back(i, i, 1);
+            } else {
+                double sum = 0;
+                for (const auto &h : mesh_.halfedges(v)) {
+                    double value = cotan[mesh_.edge(h)];
+                    sum += value;
+                    triplets_L.emplace_back(i, mesh_.to_vertex(h).idx(), value);
+                }
+                triplets_L.emplace_back(i, i, -sum);
+            }
         }
+
+        L.setFromTriplets(triplets_L.begin(), triplets_L.end());
 
         // ------------- IMPLEMENT HERE ---------
         // Compute squared Laplace-Beltrami matrix
@@ -66,6 +80,12 @@ namespace mesh_processing {
         //    the function deformation_axis() is called 3 times, with mode = 0, mode = 1 and mode = 3 for the axis X, Y and Z
         // ------------- IMPLEMENT HERE ---------
 
+        Eigen::SparseMatrix<double> L2(L*L);
+        for (int row = 0; row<N; ++row) {
+            for(Eigen::SparseMatrix<double>::InnerIterator it(L2, row); it; ++it) {
+
+            }
+        }
 
         // clean-up
         mesh_.remove_edge_property(cotan);
