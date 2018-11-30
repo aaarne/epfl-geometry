@@ -50,7 +50,6 @@ public:
     void compute_mesh_properties();
 
 	void deformation();
-	void deformation_axis(int mode);
 	void calc_mean_curvature();
     void calc_uniform_mean_curvature();
     void calc_gauss_curvature();

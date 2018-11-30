@@ -202,6 +202,10 @@ namespace mesh_processing {
         Eigen::MatrixXd U = solver.solve(b);
         assert(solver.info() == Eigen::Success);
 
+        cout << "matrix " << A.rows() << "x" << A.cols() << endl;
+        cout << "b " << b.rows() << "x" << b.cols() << endl;
+        cout << "U " << U.rows() << "x" << U.cols() << endl;
+
         // copy solution to vertex property
         for (const auto &v : mesh_.vertices()) {
             v_texture[v] = Vec2d(U(v.idx(), 0), U(v.idx(), 1));

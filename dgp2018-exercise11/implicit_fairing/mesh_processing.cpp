@@ -31,60 +31,68 @@ namespace mesh_processing {
     }
 
     void MeshProcessing::deformation() {
-        deformation_axis(0);
-        deformation_axis(1);
-        deformation_axis(2);
-    }
-
-    void MeshProcessing::deformation_axis(int mode) {
         const int N = mesh_.n_vertices();
 
         calc_weights();
         auto cotan = mesh_.edge_property<Scalar>("e:weight");
 
         Eigen::SparseMatrix<double> L(N, N);
-        Eigen::MatrixXd rhs(Eigen::MatrixXd::Zero(N, 1));
-        std::vector<Eigen::Triplet<double> > triplets_L;
+        Eigen::MatrixXd rhs(Eigen::MatrixXd::Zero(N, 3));
+        std::vector<Eigen::Triplet<double>> triplets_L;
 
         for (int i = 0; i < N; ++i) {
 
-            // ------------- IMPLEMENT HERE ---------
-            // Set up Laplace-Beltrami matrix of the mesh
-            // ------------- IMPLEMENT HERE ---------
             auto v = Mesh::Vertex(i);
-            if (mesh_.is_boundary(v)) {
-                triplets_L.emplace_back(i, i, 1);
-            } else {
-                double sum = 0;
-                for (const auto &h : mesh_.halfedges(v)) {
-                    double value = cotan[mesh_.edge(h)];
-                    sum += value;
-                    triplets_L.emplace_back(i, mesh_.to_vertex(h).idx(), value);
-                }
-                triplets_L.emplace_back(i, i, -sum);
+            double sum = 0;
+            for (const auto &h : mesh_.halfedges(v)) {
+                double value = cotan[mesh_.edge(h)];
+                sum += value;
+                triplets_L.emplace_back(i, mesh_.to_vertex(h).idx(), value);
             }
+            triplets_L.emplace_back(i, i, -sum);
         }
 
         L.setFromTriplets(triplets_L.begin(), triplets_L.end());
 
-        // ------------- IMPLEMENT HERE ---------
-        // Compute squared Laplace-Beltrami matrix
-        // For each fixed and shifted vertex replace the corresponding row of squared Laplace-Beltrami matrix with the constraint row
-        //    Hint: to iterate through sparse matrix use Eigen::SparseMatrix<double>::InnerIterator.
-        //          note that sparse matrix is stored column-wise
-        //          since squared Laplace-Beltrami matrix is symmetric,
-        //          you can traverse the matrix column-wise and transpose the result
-        // Solve the linear system L2x = b
-        // Displace the vertices by x
-        //    Hint: the input parameter of the function "mode" indicates the current displacement axis.
-        //    the function deformation_axis() is called 3 times, with mode = 0, mode = 1 and mode = 3 for the axis X, Y and Z
-        // ------------- IMPLEMENT HERE ---------
+        const auto &fixed = fixed_faces_points_indices_;
+        const auto &shifted = shifted_faces_points_indices_;
 
-        Eigen::SparseMatrix<double> L2(L*L);
-        for (int row = 0; row<N; ++row) {
-            for(Eigen::SparseMatrix<double>::InnerIterator it(L2, row); it; ++it) {
+        Eigen::SparseMatrix<double> L2(L * L);
 
+        cout << "Δ has " << 1e2 * L.nonZeros() / (L.cols() * L.rows()) << "% nonzero entries." << endl;
+        cout << "Δ² matrix has " << 1e2 * L2.nonZeros() / (L.cols() * L.rows()) << "% nonzero entries." << endl;
+
+        for (int c = 0; c < N; ++c) {
+            if (std::find(fixed.begin(), fixed.end(), c) != fixed.end()) {
+                for (Eigen::SparseMatrix<double>::InnerIterator it(L2, c); it; ++it) {
+                    it.valueRef() = (it.col() == it.row()) ? 1 : 0;
+                }
+            } else if (std::find(shifted.begin(), shifted.end(), c) != shifted.end()) {
+                for (Eigen::SparseMatrix<double>::InnerIterator it(L2, c); it; ++it) {
+                    it.valueRef() = (it.col() == it.row()) ? 1 : 0;
+                }
+                rhs.row(c) << displacement_.x, displacement_.y, displacement_.z;
             }
+        }
+
+        Eigen::SparseLU<Eigen::SparseMatrix<double>> solver(L2.transpose());
+        if (solver.info() != Eigen::Success) throw std::runtime_error("solver setup failed");
+
+        /*
+         * In contrast to the previous assignments we got version an older version (3.2.4 instead of 3.3.90) of Eigen.
+         * This version can only solve system of the form Lx=b, where x and b are vectors. So we cannot simply solve
+         * LX=B this time. :(
+         * BTW: the code does compile also when attempting to solve LX=B, but Eigen will then only solve for the first
+         * column... Took us
+         */
+        Eigen::VectorXd sol_x = solver.solve(rhs.col(0)),
+                sol_y = solver.solve(rhs.col(1)),
+                sol_z = solver.solve(rhs.col(2));
+
+        if (solver.info() != Eigen::Success) throw std::runtime_error("solver failed");
+
+        for (const auto &v : mesh_.vertices()) {
+            mesh_.position(v) += Point(sol_x(v.idx()), sol_y(v.idx()), sol_z(v.idx()));
         }
 
         // clean-up
