@@ -560,7 +560,7 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
 
 	b = new Button(window_, "Deformation");
 	b->setCallback([this]() {
-		mesh_->deformation();
+		mesh_->deformation(deformation_mode, use_uniform_laplacian);
 		cout << "DONE" << endl;
 		mesh_->shifted_faces_points_.clear();
 		mesh_->shifted_faces_points_indices_.clear();
@@ -568,6 +568,37 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
 		mesh_->compute_mesh_properties();
 		this->refresh_mesh();
 	});
+
+	PopupButton *deformationModeBtn = new PopupButton(window_, "Deformation Mode");
+	Popup *modePopup = deformationModeBtn->popup();
+	modePopup->setLayout(new GroupLayout());
+
+	thinPlateBtn = new Button(modePopup, "Thin Plate");
+	minimalBtn = new Button(modePopup, "Minimal Surface");
+	thinPlateBtn->setFlags(Button::ToggleButton);
+	minimalBtn->setFlags(Button::ToggleButton);
+	thinPlateBtn->setPushed(true);
+	minimalBtn->setPushed(false);
+
+	thinPlateBtn->setChangeCallback([this](bool thin_plate) {
+		if (thin_plate) {
+			deformation_mode = mesh_processing::MeshProcessing::THIN_PLATE;
+			minimalBtn->setPushed(false);
+			cout << "Set to thin plate mode" << endl;
+		}
+	});
+	minimalBtn->setChangeCallback([this](bool minimal) {
+		if (minimal) {
+			deformation_mode = mesh_processing::MeshProcessing::MINIMAL_SURFACE;
+			thinPlateBtn->setPushed(false);
+			cout << "Set to minimal mode" << endl;
+		}
+	});
+
+	b = new Button(window_, "Use Uniform Laplacian");
+	b->setFlags(Button::ToggleButton);
+	b->setPushed(false);
+	b->setChangeCallback([this](bool val) {this->use_uniform_laplacian = val; });
 
 	performLayout();
 

@@ -15,6 +15,7 @@
 #include <cmath>
 #include <set>
 #include <map>
+#include <iomanip>
 
 namespace mesh_processing {
 
@@ -30,7 +31,7 @@ namespace mesh_processing {
         load_mesh(filename);
     }
 
-    void MeshProcessing::deformation() {
+    void MeshProcessing::deformation(DEFORMATION_MODE mode, bool uniform) {
         const int N = mesh_.n_vertices();
 
         calc_weights();
@@ -45,7 +46,7 @@ namespace mesh_processing {
             auto v = Mesh::Vertex(i);
             double sum = 0;
             for (const auto &h : mesh_.halfedges(v)) {
-                double value = cotan[mesh_.edge(h)];
+                double value = uniform ? 1 : cotan[mesh_.edge(h)];
                 sum += value;
                 triplets_L.emplace_back(i, mesh_.to_vertex(h).idx(), value);
             }
@@ -57,10 +58,22 @@ namespace mesh_processing {
         const auto &fixed = fixed_faces_points_indices_;
         const auto &shifted = shifted_faces_points_indices_;
 
-        Eigen::SparseMatrix<double> L2(L * L);
+        cout << "Δ has "
+             << std::setprecision(2) << 1e2 * L.nonZeros() / (L.cols() * L.rows())
+             << "% nonzero entries." << endl;
 
-        cout << "Δ has " << 1e2 * L.nonZeros() / (L.cols() * L.rows()) << "% nonzero entries." << endl;
-        cout << "Δ² matrix has " << 1e2 * L2.nonZeros() / (L.cols() * L.rows()) << "% nonzero entries." << endl;
+        Eigen::SparseMatrix<double> L2;
+
+        switch (mode) {
+            case MINIMAL_SURFACE:
+                L2 = L;
+                break;
+            case THIN_PLATE:
+                L2 = L * L;
+                cout << "Δ² matrix has "
+                     << std::setprecision(2) << 1e2 * L2.nonZeros() / (L.cols() * L.rows())
+                     << "% nonzero entries." << endl;
+        }
 
         for (int c = 0; c < N; ++c) {
             if (std::find(fixed.begin(), fixed.end(), c) != fixed.end()) {
@@ -78,13 +91,6 @@ namespace mesh_processing {
         Eigen::SparseLU<Eigen::SparseMatrix<double>> solver(L2.transpose());
         if (solver.info() != Eigen::Success) throw std::runtime_error("solver setup failed");
 
-        /*
-         * In contrast to the previous assignments we got version an older version (3.2.4 instead of 3.3.90) of Eigen.
-         * This version can only solve system of the form Lx=b, where x and b are vectors. So we cannot simply solve
-         * LX=B this time. :(
-         * BTW: the code does compile also when attempting to solve LX=B, but Eigen will then only solve for the first
-         * column...
-         */
         Eigen::VectorXd sol_x = solver.solve(rhs.col(0)),
                 sol_y = solver.solve(rhs.col(1)),
                 sol_z = solver.solve(rhs.col(2));

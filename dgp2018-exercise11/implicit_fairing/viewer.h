@@ -21,6 +21,7 @@
 #include <nanogui/textbox.h>
 #include <nanogui/tabwidget.h>
 #include "mesh_processing.h"
+#include <memory>
 
 #if defined(__GNUC__)
 #  pragma GCC diagnostic ignored "-Wmissing-field-initializers"
@@ -54,27 +55,41 @@ using namespace nanogui;
 
 class Viewer : public nanogui::Screen {
 public:
-	void select_point(const Eigen::Vector2i & pixel);
-	void select_face(const Eigen::Vector2i & pixel, int mode);
+    void select_point(const Eigen::Vector2i &pixel);
+
+    void select_face(const Eigen::Vector2i &pixel, int mode);
+
     void refresh_mesh();
-	void refresh_selection();
-	void refresh_isolines();
-	void refresh_selected_faces();
+
+    void refresh_selection();
+
+    void refresh_isolines();
+
+    void refresh_selected_faces();
+
     void refresh_trackball_center();
+
     Viewer();
+
     ~Viewer();
 
     virtual bool keyboardEvent(int key, int scancode, int action, int modifiers);
+
     virtual void draw(NVGcontext *ctx);
+
     Vector2f getScreenCoord();
+
     virtual void drawContents();
 
     bool scrollEvent(const Vector2i &p, const Vector2f &rel);
+
     bool mouseMotionEvent(const Vector2i &p, const Vector2i &rel, int button, int modifiers);
+
     bool mouseButtonEvent(const Vector2i &p, int button, bool down, int modifiers);
 
 private:
     void initShaders();
+
     void computeCameraMatrices(Eigen::Matrix4f &model,
                                Eigen::Matrix4f &view,
                                Eigen::Matrix4f &proj);
@@ -98,33 +113,42 @@ private:
     // Variables for the viewer
     nanogui::GLShader shader_;
     nanogui::GLShader shaderNormals_;
-	nanogui::GLShader shaderSelection_;
-	nanogui::GLShader shaderDisplacement_;
-	nanogui::GLShader shaderFixedFaces_;
-	nanogui::GLShader shaderShiftedFaces_;
+    nanogui::GLShader shaderSelection_;
+    nanogui::GLShader shaderDisplacement_;
+    nanogui::GLShader shaderFixedFaces_;
+    nanogui::GLShader shaderShiftedFaces_;
     nanogui::Window *window_;
 
-    mesh_processing::MeshProcessing* mesh_;
+    mesh_processing::MeshProcessing *mesh_;
 
-    enum COLOR_MODE : int { NORMAL = 0, VALENCE = 1, CURVATURE = 2, LAPLACIAN = 5 };
-    enum CURVATURE_TYPE : int { UNIMEAN = 2, LAPLACEBELTRAMI = 3, GAUSS = 4 };
+    enum COLOR_MODE : int {
+        NORMAL = 0, VALENCE = 1, CURVATURE = 2, LAPLACIAN = 5
+    };
+    enum CURVATURE_TYPE : int {
+        UNIMEAN = 2, LAPLACEBELTRAMI = 3, GAUSS = 4
+    };
 
     // Boolean for the viewer
     bool wireframe_ = true;
     bool normals_ = false;
-	bool displacement_ = false;
-	bool fixed_faces_ = false;
-	bool shifted_faces_ = false;
-	size_t edit_constraint_index_ = 0;
-	std::vector<size_t> contraint_indices_ = { 40, 58, 297, 484 };//{ 3, 1 };//{ 5, 7 }; // { 40, 58 };//{ 5, 7 };
-	
+    bool displacement_ = false;
+    bool fixed_faces_ = false;
+    bool shifted_faces_ = false;
+    size_t edit_constraint_index_ = 0;
+    std::vector<size_t> contraint_indices_ = {40, 58, 297, 484};//{ 3, 1 };//{ 5, 7 }; // { 40, 58 };//{ 5, 7 };
+
     CURVATURE_TYPE curvature_type = UNIMEAN;
     COLOR_MODE color_mode = NORMAL;
+    mesh_processing::MeshProcessing::DEFORMATION_MODE
+            deformation_mode = mesh_processing::MeshProcessing::DEFORMATION_MODE::THIN_PLATE;
+    bool use_uniform_laplacian = false;
 
     PopupButton *popupCurvature;
-    FloatBox<float>* coefTextBox;
-    FloatBox<float>* displacementXTextBox;
-	FloatBox<float>* displacementYTextBox;
-	FloatBox<float>* displacementZTextBox;
-	IntBox<int>* iterationTextBox;
+    FloatBox<float> *coefTextBox;
+    FloatBox<float> *displacementXTextBox;
+    FloatBox<float> *displacementYTextBox;
+    FloatBox<float> *displacementZTextBox;
+    IntBox<int> *iterationTextBox;
+
+    Button *thinPlateBtn, *minimalBtn;
 };
