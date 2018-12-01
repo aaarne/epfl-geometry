@@ -73,6 +73,7 @@ namespace mesh_processing {
                 cout << "Δ² matrix has "
                      << std::setprecision(2) << 1e2 * L2.nonZeros() / (L.cols() * L.rows())
                      << "% nonzero entries." << endl;
+                break;
         }
 
         for (int c = 0; c < N; ++c) {
