@@ -573,8 +573,8 @@ Viewer::Viewer() : nanogui::Screen(Eigen::Vector2i(1024, 768), "DGP Viewer") {
 	Popup *modePopup = deformationModeBtn->popup();
 	modePopup->setLayout(new GroupLayout());
 
-	thinPlateBtn = new Button(modePopup, "Thin Plate");
-	minimalBtn = new Button(modePopup, "Minimal Surface");
+	thinPlateBtn = new Button(modePopup, "Δ²");
+	minimalBtn = new Button(modePopup, "Δ");
 	thinPlateBtn->setFlags(Button::ToggleButton);
 	minimalBtn->setFlags(Button::ToggleButton);
 	thinPlateBtn->setPushed(true);
