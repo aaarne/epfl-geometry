@@ -43,3 +43,9 @@ Collection of our observations:
 - We can easily create self intersections, which do not occur in the real world.
 - In the simulation, deformation affects the complete mesh.
 
+## Screenshots:
+
+- _comparison_cotan_uniform.png_: shows Max with deformed nose. Once deformed using cotan and once using uniform weights.
+- _bunnies.png_: comparison of minimal surface and thin plate approach
+- _self_intersection_shpere_?.png_: demonstration of a self intersection on a sphere mesh.
+- _xmas.png_: Christmas feeling
