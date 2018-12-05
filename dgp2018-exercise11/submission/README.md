@@ -36,10 +36,9 @@ based on the uniform Laplacian is worse as the approximation of the Laplacian is
 
 ## Comparing with Physical Deformation
 
-TODO, some ideas:
+Collestion of our observations:
 - The volume changes. This is not the case in the physical case, is it? It would lead to pressure differences.
 - The surface never tears, no matter how much we deform.
 - We can easily create self intersections, which do not occur in the real world.
-- Deformation effects the complete mesh. If we fix the tail and deform an ear of the bunny, the complete mesh (except the tail)
-changes. I believe in a physical world it is possible to only deform the ear of a bunny.
+- Deformation effects the complete mesh.
 
