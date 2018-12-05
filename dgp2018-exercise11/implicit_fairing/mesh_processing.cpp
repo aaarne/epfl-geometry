@@ -125,7 +125,6 @@ namespace mesh_processing {
                     laplace += (mesh_.position(*vv_c) - mesh_.position(v));
                     ++n;
                 } while (++vv_c != vv_end);
-
                 laplace /= n;
 
                 curv = 0.5f * norm(laplace);

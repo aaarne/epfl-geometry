@@ -20,11 +20,19 @@ to use the thin-plate (L²x=b) or minimal surface (Lx=b) approach.
 
 ## Comparing Lx = b and L²x = b
 
-TODO
+The displacement can be interpreted as another mesh with the same graph structure but different vertex positions.
+Therefore, we the use of the standard Laplacian imposes a minimal surface operation on the displacement mesh and the
+squared Laplacian corresponds to the thin plate approach on the displacement mesh. Hence, for L the mean curvature of
+the displacement mesh approximates zero and for L² the Gaussian curvature approximates zero. In consequence, we observe
+a more global deformation for the L² approach, i. e. the displacement in a near locality of the fixed and shifted vertices
+is smaller as for the L approach. However, the displacement variation is also smaller for the L² approach.
 
 ## Comparing Different Laplacian Weights
 
-TODO
+As in the previous assignments the uniform weighted Laplacian results in a bumpy mesh. We evaluated the difference on the
+Max Planck mesh as the triangulation is highly irregular and we expect a larger difference between cotangent weighted and
+uniform weighted Laplacian. We attached a screenshot of the result in "comparison_cotan_uniform.png". The deformation
+based on the uniform Laplacian is worse as the approximation of the Laplacian is worse.
 
 ## Comparing with Physical Deformation
 
