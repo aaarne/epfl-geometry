@@ -9,7 +9,7 @@ _(uniformly distributed workload)_
 
 ## Implementation Comments
 
-1. The given framework computes the displacement for the vertices component-wisely.
+1. The given framework computes the displacement for the vertices componentwisely.
 In our opinion this has the drawback, that the (very same) Laplacian of Laplacian matrix
 has to be set up three times. We computed the update for all coordinates in the same
 method and removed the auxiliary method.
