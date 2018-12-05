@@ -37,7 +37,8 @@ based on the uniform Laplacian is worse as the approximation of the Laplacian is
 ## Comparing with Physical Deformation
 
 Collestion of our observations:
-- The volume changes. This is not the case in the physical case, is it? It would lead to pressure differences.
+- The volume changes for closed surfaces. This is not the case in the physical case, is it? It would lead to pressure differences.
+- The thickness of the surface is zero, which is not the case for physical objects.
 - The surface never tears, no matter how much we deform.
 - We can easily create self intersections, which do not occur in the real world.
 - Deformation effects the complete mesh.
