@@ -9,7 +9,7 @@ _(uniformly distributed workload)_
 
 ## Implementation Comments
 
-1. The given framework computes the displacement for the vertices componentwise.
+1. The given framework computes the displacement for the vertices component-wisely.
 In our opinion this has the drawback, that the (very same) Laplacian of Laplacian matrix
 has to be set up three times. We computed the update for all coordinates in the same
 method and removed the auxiliary method.
@@ -36,10 +36,10 @@ based on the uniform Laplacian is worse as the approximation of the Laplacian is
 
 ## Comparing with Physical Deformation
 
-Collestion of our observations:
-- The volume changes for closed surfaces. This is not the case in the physical case, is it? It would lead to pressure differences.
+Collection of our observations:
 - The thickness of the surface is zero, which is not the case for physical objects.
-- The surface never tears, no matter how much we deform.
+- In the real world, the material of the object matters. I. e., the material and it's distribution, density etc. affect the deformation.
+- In the simulation, the surface never tears, no matter how much we deform.
 - We can easily create self intersections, which do not occur in the real world.
-- Deformation effects the complete mesh.
+- In the simulation, deformation affects the complete mesh.
 
