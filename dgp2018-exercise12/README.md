@@ -1,6 +1,9 @@
 # Exercise 12 - Processing of Scanned Model
 
-(Insert photos of fox model and mesh here)
+|||
+|-|-|
+|![Photo model](images/real_world.jpg){ width=50% } |![Scanned Object](images/3d_model.png)
+|![](images/wireframe_front.png)|![](images/wireframe_back.png)
 
 vertices: 10734
 faces: 25649
