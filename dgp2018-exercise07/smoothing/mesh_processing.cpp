@@ -89,7 +89,7 @@ namespace mesh_processing {
             for (const auto &v : mesh_.vertices()) {
                 if (mesh_.is_boundary(v)) continue; // Skip boundary vertices
 
-                // Compute uniform laplacian
+                // Compute cotan weighted laplacian
                 acc = 0;
                 laplacian_weighted = 0;
                 for (const auto &v2 : mesh_.vertices(v)) {
