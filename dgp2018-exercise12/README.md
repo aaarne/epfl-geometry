@@ -10,13 +10,12 @@ edges: 38569
 ## Curvature Estimation
 
 ### Mean curvature
-
-|-|-|
-| ![uniform_laplace_front](images/curvature/laplace_beltrami_front.png) | ![uniform_laplace_back](images/curvature/laplace_beltrami_back.png)|
-|-|-|  
-|![laplace_beltrami_front](images/curvature/laplace_beltrami_front.png) | ![laplace_beltrami_back](images/curvature/laplace_beltrami_back.png) |
-| With | |
-
+|||
+-|-
+Uniform Weights |
+![uniform_laplace_front](images/curvature/laplace_beltrami_front.png) | ![uniform_laplace_back](images/curvature/laplace_beltrami_back.png)
+ Cotangent Weights |
+![laplace_beltrami_front](images/curvature/uniform_laplacian_front.png) | ![laplace_beltrami_back](images/curvature/uniform_laplacian_back.png)
 
 ## Smoothing
 
