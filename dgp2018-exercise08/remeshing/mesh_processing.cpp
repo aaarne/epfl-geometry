@@ -61,7 +61,7 @@ namespace mesh_processing {
         Mesh::Vertex_property <Scalar> max_curvature = mesh_.vertex_property<Scalar>("v:max_curvature", 0);
 
         // user specified target length
-        const float TARGET_LENGTH = 2.0;
+        const float TARGET_LENGTH = 0.75;
 
         if (remeshing_type == AVERAGE) {
             for (v_it = mesh_.vertices_begin(); v_it != v_end; ++v_it)
