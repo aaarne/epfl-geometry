@@ -60,6 +60,7 @@ namespace mesh_processing {
         }
 
         for (const auto &v : mesh_.vertices()) {
+	    if (mesh_.is_boundary(v)) continue;
             mesh_.position(v) = updated_position[v];
         }
 
@@ -71,7 +72,7 @@ namespace mesh_processing {
 // ========================================================================
     void MeshProcessing::smooth(const unsigned int iterations) {
         auto updated_position = mesh_.vertex_property<Point>("v:updated_pos", Point(0.0));
-        const double rate = 0.5;
+        const double rate = 0.1;
 
         Point laplacian_weighted;
         double acc = 0;
@@ -105,6 +106,7 @@ namespace mesh_processing {
         }
 
         for (const auto &v : mesh_.vertices()) {
+	    if (mesh_.is_boundary(v)) continue;
             mesh_.position(v) = updated_position[v];
         }
 
