@@ -41,8 +41,18 @@
 === Remeshing
 
 |===
-|image:images/remeshing/[target_length_0.25_average_front.png] |image:images/remeshing/target_length_0.25_average_back.png[]
-|image:images/remeshing/[target_length_0.25_curvature_front.png] |image:images/remeshing/target_length_0.25_curvature_back.png[]
+|Uniform remeshing for target length = 0.25
+|image:images/remeshing/target_length_0.25_average_front.png[] | image:images/remeshing/target_length_0.25_average_back.png[]
+|Adaptive remeshing for target length = 0.25
+|image:images/remeshing/target_length_0.25_curvature_front.png[] | image:images/remeshing/target_length_0.25_curvature_back.png[]
+|Uniform remeshing for target length = 0.75
+|image:images/remeshing/target_0.75_average.png[]
+|Adaptive remeshing for target length = 0.75
+|image:images/remeshing/target_0.75_curvature.png[]
+|Uniform remeshing for target length = 1
+|image:images/remeshing/target_1_average.png[]
+|Adaptive remeshing for target length = 1
+|image:images/remeshing/target_1_curvature.png[]
 |===
 
 * target length = 2
