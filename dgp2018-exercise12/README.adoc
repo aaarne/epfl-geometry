@@ -89,7 +89,7 @@ The remeshing on our mesh works quite well and also for larger target lengths, t
 Obviously, the uniform remeshing works only for smaller target lengths because for larger target lengths (and thus less triangles) the specific geometry cannot reproduced.
 Hence, it is hard to fit to parts with a higher curvature.
 This can be best seen in the uniform remeshing for target lengths and 0.75 and 1.
-However, with uniform remeshing there are some problems with ceratin parts like the earseven for a target length of 0.25.
+However, with uniform remeshing there are some problems with certain parts like the ears even for a target length of 0.25.
 
 The adaptive remeshing even works for a target length of 1. Although not every geometric information is perfectly preserved, the shape stays highly comprhensible.
 
@@ -97,9 +97,9 @@ The adaptive remeshing even works for a target length of 1. Although not every g
 
 Below we show the results of the texture mapping and parametrization for out model. Additionally, we show the minimal surface of interpolated between the boundary using our mesh topology. As the surface is genus 1 and the minimal surface doesn't change the surface's genus, we also get a genus 1 minimal surface.
 
-Our model a quite a large boundary, but the connection between the bench and the fox is quite narrow and as the mapping is convex, the complete fox will be mapped to a small region in paramter space.
+Our model has quite a large boundary, but the connection between the bench and the fox is quite narrow and as the mapping is convex, the complete fox will be mapped to a small region in parameter space.
 Therefore, the texture looks quite good for the bench, but the quality is poor for the fox.
-Our model has no disk topology and we therefore expect edge intersections in the paramter domain.
+Our model has no disk topology and we therefore expect edge intersections in the parameter domain.
 
 |===
 2+|Parameterization (Direct Solution)
