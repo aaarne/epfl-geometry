@@ -18,7 +18,10 @@ Our mesh has the following properties:
 * vertices: 12919
 * faces: 25648
 * edges: 38569
+* it has a single boundary
+* it has not disk-like topology as we have genus 1.
 
+You can find the wavefront model of our model link:./model[here].
 
 == Curvature Estimation
 
