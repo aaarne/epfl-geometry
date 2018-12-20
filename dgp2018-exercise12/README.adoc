@@ -26,18 +26,18 @@ Below we show the discrete curvature estimations of mean- and Gaussian curvature
 We can observe some artifacts, where the cotangent-weighted mean curvature is large on the flat region. The mesh seems to have some angle configurations, which make the cotangent weights unstable.
 
 |===
-2+|Mean Curvature with Uniform Weights 
+2+|Mean Curvature with Uniform Weights
 |image:images/curvature/uniform_laplacian_front.png[ ] | image:images/curvature/uniform_laplacian_back.png[ ]
-2+|Mean Curvature with Cotangent Weights 
+2+|Mean Curvature with Cotangent Weights
 |image:images/curvature/laplace_beltrami_front.png[ ] | image:images/curvature/laplace_beltrami_back.png[ ]
-2+|Gaussian curvature 
+2+|Gaussian curvature
 |image:images/curvature/gaussian_front.png[ ] | image:images/curvature/gaussian_back.png[ ]
 |===
 
 == Smoothing
 
 We first tried implicit smoothing on our mesh with a large diffusion constant latexmath:[\lambda = 10^4] and show the result in the first row.
-As shows in the curvatures estimates section above, our mesh has some artifacts when using cotangent weights.
+As shown in the curvatures estimates section above, our mesh has some artifacts when using cotangent weights.
 Therefore, the results of explicit smoothing with cotan weights shows some artifacts, while the uniformly weighted one looks good.
 For the trials, we used a diffusion constant of latexmath:[\lambda = 0.5] and latexmath:[25] iterations.
 Additionally, we show the mean curvature of the resulting model after the explicit smoothing.
@@ -60,27 +60,27 @@ In order to overcome the anomalies with the cotan weights, remeshing would be on
 Feature enhancement on our model is quite challenging, as we have also some scraggly surfaces on the bench and the floor. These will always show up, when we try to, for instance, enhance the ear or nose feature. Below you can see the issues with enhancing the surface roughness. Note also, that the increase in ear and nose size is evident.
 
 |===
-|image:images/enhancing/enhanced_front.png[ ] | image:images/enhancing/enhanced_back.png[] 
+|image:images/enhancing/enhanced_front.png[ ] | image:images/enhancing/enhanced_back.png[]
 |===
 
 == Remeshing
 
-We try the remeshing algorithm for different target lengths using both, non-adaptive and adaptive remeshing. In adaptive remeshing, the target length is scaled by the inverse of the curvature. 
+We try the remeshing algorithm for different target lengths using both, non-adaptive and adaptive remeshing. In adaptive remeshing, the target length is scaled by the inverse of the curvature.
 The remeshing on our mesh works quite well and also for larger target lengths, the curvature-adaptive remeshing can provide nice results.
 
 |===
-2+|Uniform remeshing for target length = 0.25 
+2+|Uniform remeshing for target length = 0.25
 |image:images/remeshing/target_length_0.25_average_front.png[] | image:images/remeshing/target_length_0.25_average_back.png[]
-2+|Adaptive remeshing for target length = 0.25 
+2+|Adaptive remeshing for target length = 0.25
 |image:images/remeshing/target_length_0.25_curvature_front.png[] | image:images/remeshing/target_length_0.25_curvature_back.png[]
-|Uniform remeshing for target length = 0.75 
-|Adaptive remeshing for target length = 0.75 
-|image:images/remeshing/target_0.75_average.png[] 
-|image:images/remeshing/target_0.75_curvature.png[] 
-|Uniform remeshing for target length = 1 
-|Adaptive remeshing for target length = 1 
-|image:images/remeshing/target_1_average.png[] 
-|image:images/remeshing/target_1_curvature.png[] 
+|Uniform remeshing for target length = 0.75
+|Adaptive remeshing for target length = 0.75
+|image:images/remeshing/target_0.75_average.png[]
+|image:images/remeshing/target_0.75_curvature.png[]
+|Uniform remeshing for target length = 1
+|Adaptive remeshing for target length = 1
+|image:images/remeshing/target_1_average.png[]
+|image:images/remeshing/target_1_curvature.png[]
 |===
 
 Obviously, the uniform remeshing works only for smaller target lengths because for larger target lengths (and thus less triangles) the specific geometry cannot reproduced.
@@ -95,16 +95,16 @@ The adaptive remeshing even works for a target length of 1. Although not every g
 Below we show the results of the texture mapping and parametrization for out model. Additionally, we show the minimal surface of interpolated between the boundary using our mesh topology. As the surface is genus 1 and the minimal surface doesn't change the surface's genus, we also get a genus 1 minimal surface.
 
 Our model a quite a large boundary, but the connection between the bench and the fox is quite narrow and as the mapping is convex, the complete fox will be mapped to a small region in paramter space.
-Therefore, the texture looks quite good for the bench, but the quality is poor for the fox. 
+Therefore, the texture looks quite good for the bench, but the quality is poor for the fox.
 Our model has no disk topology and we therefore expect edge intersections in the paramter domain.
 
 |===
 2+|Parameterization (Direct Solution)
-|image:images/parameterization/front.png[] | image:images/parameterization/back.png[ ] 
+|image:images/parameterization/front.png[] | image:images/parameterization/back.png[ ]
 |Parameterization (iterative) after 25 iterations
 |Minimal surface
-|image:images/parameterization/iterative_25_iterations.png[] 
-|image:images/parameterization/minimal_surface.png[] 
+|image:images/parameterization/iterative_25_iterations.png[]
+|image:images/parameterization/minimal_surface.png[]
 |===
 
 == Deformation
@@ -114,5 +114,5 @@ We stretched the bench in length. For the minimal surface we observe that basica
 
 |===
 |Minimal surface deformation|Thin-plate deformation
-|image:images/deformation/deformation_fat_bear_minimal_surface.png[] | image:images/deformation/deformation_fat_bear_thin_plate.png[] 
+|image:images/deformation/deformation_fat_bear_minimal_surface.png[] | image:images/deformation/deformation_fat_bear_thin_plate.png[]
 |===
